@@ -561,6 +561,18 @@ module.exports = function (eleventyConfig) {
 
   userEleventySetup(eleventyConfig);
 
+  // Filter note collection to only include published notes
+  eleventyConfig.addCollection("note", function(collectionApi) {
+    return collectionApi.getFilteredByTag("note").filter(function(item) {
+      // Include if dg-publish is true or not set (default to published)
+      // Also check for dgPublish (camelCase) for compatibility
+      const dgPublish = item.data["dg-publish"] !== undefined 
+        ? item.data["dg-publish"] 
+        : item.data.dgPublish;
+      return dgPublish !== false;
+    });
+  });
+
   return {
     dir: {
       input: "src/site",
