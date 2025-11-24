@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/1-data-analyst/3-thong-ke-suy-luan-inferential-statistics/","updated":"2025-11-24T09:12:38.465+07:00"}
+{"dg-publish":true,"permalink":"/1-data-analyst/3-thong-ke-suy-luan-inferential-statistics/","updated":"2025-11-24T09:12:38.483+07:00"}
 ---
 
 # 1. **Lấy mẫu (Sampling)**
