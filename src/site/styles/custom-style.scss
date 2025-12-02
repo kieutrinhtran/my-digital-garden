@@ -9,38 +9,91 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     
-    // Pastel Sky Blue Color Palette
-    --color-neutral-50: #f0f9ff; // Very light sky blue
-    --color-neutral-100: #e0f2fe; // Light sky blue
-    --color-neutral-200: #bae6fd; // Pastel sky blue
-    --color-neutral-300: #7dd3fc; // Soft sky blue
-    --color-neutral-400: #38bdf8; // Medium sky blue
-    --color-neutral-500: #0ea5e9; // Sky blue
-    --color-neutral-600: #0284c7; // Deeper sky blue
-    --color-neutral-700: #0369a1; // Dark sky blue
-    --color-neutral-800: #075985; // Deep sky blue
-    --color-neutral-900: #0c4a6e; // Darkest sky blue
+    // Glassmorphism: Vibrant Background Gradient
+    background: linear-gradient(135deg, 
+        #667eea 0%,      // Vibrant blue-purple
+        #764ba2 25%,    // Purple
+        #f093fb 50%,    // Pink
+        #4facfe 75%,    // Bright blue
+        #00f2fe 100%    // Cyan
+    );
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    min-height: 100vh;
+    position: relative;
     
-    // Pastel Sky Blue Accent colors for interactive elements
-    --color-accent-primary: #87CEEB; // Sky blue - main accent
-    --color-accent-hover: #5F9EA0; // Cadet blue - hover state
-    --color-accent-active: #4682B4; // Steel blue - active state
+    // Glassmorphism: Light source reflection overlay
+    &::before {
+        content: '';
+        position: fixed;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+        animation: lightMove 20s ease-in-out infinite;
+    }
+    
+    // Glassmorphism Color Palette - Translucent colors
+    --color-neutral-50: rgba(240, 249, 255, 0.9);
+    --color-neutral-100: rgba(224, 242, 254, 0.85);
+    --color-neutral-200: rgba(186, 230, 253, 0.8);
+    --color-neutral-300: rgba(125, 211, 252, 0.75);
+    --color-neutral-400: rgba(56, 189, 248, 0.7);
+    --color-neutral-500: rgba(14, 165, 233, 0.65);
+    --color-neutral-600: rgba(2, 132, 199, 0.6);
+    --color-neutral-700: rgba(3, 105, 161, 0.55);
+    --color-neutral-800: rgba(7, 89, 133, 0.5);
+    --color-neutral-900: rgba(12, 74, 110, 0.45);
+    
+    // Glassmorphism Accent colors - Bright and vibrant
+    --color-accent-primary: rgba(135, 206, 235, 0.9); // Sky blue - main accent
+    --color-accent-hover: rgba(95, 158, 160, 0.95); // Cadet blue - hover state
+    --color-accent-active: rgba(70, 130, 180, 1); // Steel blue - active state
+    
+    // Glassmorphism animations
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    @keyframes lightMove {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(20%, 20%) rotate(180deg); }
+    }
 
-    // Tối ưu content area cho việc đọc markdown - Professional Layout
+    // Glassmorphism: Content area with frosted glass effect
     .content {
         max-width: 900px;
         padding: 0 48px;
-        margin: 100px auto 80px; // Centered with top margin for fixed navbar
+        margin: 100px auto 80px;
         font-size: 16px;
         line-height: 1.75;
         letter-spacing: 0.01em;
-        color: var(--text-normal);
+        color: rgba(255, 255, 255, 0.95); // Light text for glassmorphism
+        position: relative;
+        z-index: 1;
         
-        // Content header styling
+        // Glassmorphism: Main content card
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 
+            0 8px 32px 0 rgba(31, 38, 135, 0.37),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        padding: 48px;
+        margin-top: 120px;
+        
+        // Content header styling with glassmorphism
         .content-header {
             margin-bottom: 2.5em;
             padding-bottom: 1.5em;
-            border-bottom: 1px solid var(--background-modifier-border);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             
             h1 {
                 margin-top: 0;
@@ -60,23 +113,29 @@ body {
                     gap: 8px;
                     
                     .tag {
-                        background-color: var(--background-secondary);
-                        color: var(--text-normal);
+                        // Glassmorphism tag styling
+                        background: rgba(255, 255, 255, 0.15);
+                        backdrop-filter: blur(10px);
+                        -webkit-backdrop-filter: blur(10px);
+                        color: rgba(255, 255, 255, 0.95);
                         padding: 6px 14px;
                         border-radius: 16px;
                         font-size: 0.8125rem;
                         font-weight: 500;
                         text-decoration: none;
-                        transition: all 0.2s ease;
-                        border: 1px solid var(--background-modifier-border);
+                        transition: all 0.3s ease;
+                        border: 1px solid rgba(255, 255, 255, 0.3);
                         font-family: 'Inter', sans-serif;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                         
                         &:hover {
-                            background-color: var(--background-modifier-hover);
-                            color: var(--color-accent-primary);
-                            border-color: var(--color-accent-primary);
+                            background: rgba(255, 255, 255, 0.25);
+                            color: rgba(255, 255, 255, 1);
+                            border-color: rgba(255, 255, 255, 0.5);
                             transform: translateY(-2px);
-                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                            box-shadow: 
+                                0 6px 12px rgba(0, 0, 0, 0.15),
+                                inset 0 1px 0 rgba(255, 255, 255, 0.4);
                         }
                     }
                 }
@@ -85,7 +144,7 @@ body {
                     display: flex;
                     flex-wrap: wrap;
                     gap: 20px;
-                    color: var(--text-muted);
+                    color: rgba(255, 255, 255, 0.7);
                     font-size: 0.875rem;
                     font-family: 'Inter', sans-serif;
                     
@@ -98,12 +157,12 @@ body {
                         i {
                             width: 16px;
                             height: 16px;
-                            color: var(--text-muted);
+                            color: rgba(255, 255, 255, 0.7);
                             flex-shrink: 0;
                         }
                         
                         .human-date {
-                            color: var(--text-muted);
+                            color: rgba(255, 255, 255, 0.7);
                         }
                     }
                 }
@@ -115,7 +174,7 @@ body {
             margin-top: 2em;
         }
         
-        // Typography improvements - Professional Inter font
+        // Glassmorphism: Typography improvements
         h1, h2, h3, h4, h5, h6 {
             margin-top: 1.8em;
             margin-bottom: 0.6em;
@@ -123,13 +182,14 @@ body {
             line-height: 1.3;
             font-family: 'Inter', sans-serif;
             letter-spacing: -0.02em;
-            color: var(--text-normal);
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         
         h1 {
             font-size: 2.5em;
             font-weight: 700;
-            border-bottom: 2px solid var(--background-modifier-border);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
             padding-bottom: 0.4em;
             margin-top: 0;
         }
@@ -137,7 +197,7 @@ body {
         h2 {
             font-size: 1.875em;
             font-weight: 600;
-            border-bottom: 1px solid var(--background-modifier-border);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             padding-bottom: 0.3em;
         }
         
@@ -160,9 +220,10 @@ body {
         p {
             margin-top: 0.8em;
             margin-bottom: 0.8em;
+            color: rgba(255, 255, 255, 0.9);
         }
         
-        // List styling
+        // Glassmorphism: List styling
         ul, ol {
             margin: 1em 0;
             padding-left: 2em;
@@ -170,178 +231,215 @@ body {
         
         li {
             margin: 0.4em 0;
+            color: rgba(255, 255, 255, 0.9);
         }
         
-        // Code blocks - Pastel sky blue theme
+        // Glassmorphism: Code blocks
         pre {
-            background-color: rgba(135, 206, 235, 0.08); // Light sky blue tint
-            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
             padding: 1em;
             overflow-x: auto;
             margin: 1.5em 0;
-            border: 1px solid rgba(135, 206, 235, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
             
             code {
                 background-color: transparent;
                 padding: 0;
-                color: var(--text-normal);
+                color: rgba(255, 255, 255, 0.9);
             }
         }
         
         code {
-            background-color: rgba(135, 206, 235, 0.1); // Light sky blue tint
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
             padding: 0.2em 0.4em;
-            border-radius: 3px;
+            border-radius: 6px;
             font-size: 0.9em;
-            color: var(--color-accent-primary);
-            border: 1px solid rgba(135, 206, 235, 0.2);
+            color: rgba(135, 206, 235, 1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
-        // Blockquotes - Pastel sky blue theme
+        // Glassmorphism: Blockquotes
         blockquote {
-            border-left: 4px solid var(--color-accent-primary);
+            border-left: 4px solid rgba(135, 206, 235, 0.8);
             padding-left: 1em;
             margin: 1.5em 0;
-            color: var(--text-muted);
+            color: rgba(255, 255, 255, 0.85);
             font-style: italic;
-            background-color: rgba(135, 206, 235, 0.05); // Light sky blue tint
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 1em 1em 1em 1.5em;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
-        // Tables
+        // Glassmorphism: Tables
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 1.5em 0;
-            border: 1px solid var(--background-modifier-border);
-            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
             overflow: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             
             th, td {
                 padding: 0.6em 1em;
-                border: 1px solid var(--background-modifier-border);
+                border: 1px solid rgba(255, 255, 255, 0.1);
             }
             
             th {
-                background-color: var(--background-secondary);
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
                 font-weight: 600;
-                color: var(--text-normal);
+                color: rgba(255, 255, 255, 0.95);
             }
             
             td {
-                color: var(--text-normal);
+                color: rgba(255, 255, 255, 0.9);
             }
             
             tr:hover {
-                background-color: var(--background-modifier-hover);
+                background: rgba(255, 255, 255, 0.1);
             }
         }
         
-        // Links - Professional styling with clear hover states
+        // Glassmorphism: Links with light colors
         a {
-            color: var(--color-accent-primary);
+            color: rgba(135, 206, 235, 1);
             text-decoration: none;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             font-weight: 500;
             font-family: 'Inter', sans-serif;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
             
             &:hover {
-                color: var(--color-accent-hover);
+                color: rgba(255, 255, 255, 1);
                 text-decoration: underline;
                 text-underline-offset: 2px;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             }
             
             &:active {
-                color: var(--color-accent-active);
+                color: rgba(95, 158, 160, 1);
             }
         }
         
         // Internal links
         a.internal-link {
-            color: var(--color-accent-primary);
+            color: rgba(135, 206, 235, 1);
             border-bottom: 1px solid transparent;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             
             &:hover {
-                color: var(--color-accent-hover);
-                border-bottom-color: var(--color-accent-hover);
+                color: rgba(255, 255, 255, 1);
+                border-bottom-color: rgba(255, 255, 255, 0.5);
             }
         }
         
         // External links
         a.external-link {
-            color: var(--color-accent-primary);
+            color: rgba(135, 206, 235, 1);
             
             &:hover {
-                color: var(--color-accent-hover);
+                color: rgba(255, 255, 255, 1);
             }
         }
         
-        // Horizontal rule
+        // Horizontal rule with glassmorphism
         hr {
             border: none;
-            border-top: 1px solid var(--background-modifier-border);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
             margin: 2em 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
     }
 
-    // Fixed Professional Navbar
+    // Glassmorphism: Fixed Navbar
     .navbar {
         position: fixed !important;
         top: 0;
         left: 0;
         right: 0;
         width: 100%;
-        background-color: var(--background-primary);
-        border-bottom: 1px solid var(--background-modifier-border);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        // Glassmorphism effect
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 
+            0 8px 32px 0 rgba(31, 38, 135, 0.37),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
         z-index: 100;
         padding: 0 var(--file-margins);
         height: 64px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        backdrop-filter: blur(10px);
         
         .navbar-inner {
             h1 {
                 font-size: 1.25rem;
                 font-weight: 600;
-                color: var(--text-normal);
+                color: rgba(255, 255, 255, 0.95);
                 margin: 0;
                 letter-spacing: -0.02em;
                 font-family: 'Inter', sans-serif;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
                 
                 a {
                     color: inherit;
                     text-decoration: none;
-                    transition: color 0.2s ease;
+                    transition: all 0.3s ease;
                     
                     &:hover {
-                        color: var(--color-accent-primary);
+                        color: rgba(255, 255, 255, 1);
+                        text-shadow: 0 2px 8px rgba(135, 206, 235, 0.5);
                     }
                 }
             }
         }
         
         .search-button {
-            background-color: var(--background-secondary);
-            border: 1px solid var(--background-modifier-border);
-            border-radius: 8px;
+            // Glassmorphism button
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
             padding: 8px 16px;
             display: flex;
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            color: var(--text-muted);
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.9);
             font-size: 0.875rem;
             font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             
             &:hover {
-                background-color: var(--background-modifier-hover);
-                border-color: var(--color-accent-primary);
-                color: var(--text-normal);
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                background: rgba(255, 255, 255, 0.25);
+                border-color: rgba(255, 255, 255, 0.5);
+                color: rgba(255, 255, 255, 1);
+                box-shadow: 
+                    0 6px 12px rgba(0, 0, 0, 0.15),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+                transform: translateY(-2px);
             }
             
             .search-icon {
@@ -372,12 +470,14 @@ body {
         padding: 16px var(--file-margins);
     }
 
-    // Tối ưu sidebar - consolidated text color rules
+    // Glassmorphism: Sidebar
     .sidebar {
-        top: 80px; // Adjusted for fixed navbar
+        top: 80px;
         right: 20px;
         max-width: 300px;
-        color: var(--text-normal);
+        color: rgba(255, 255, 255, 0.95);
+        position: relative;
+        z-index: 2;
         
         // Base text color for all elements except special cases
         p, label, span:not(#depth-display), div:not(#depth-display):not(.graph):not(.toc):not(.backlinks):not(.filetree-in-sidebar),
@@ -440,24 +540,34 @@ body {
                     }
                 }
                 
-                // Shared styles for notelink and foldername-wrapper
+                // Glassmorphism: Shared styles for notelink and foldername-wrapper
                 .notelink, .foldername-wrapper {
                     padding: 8px 10px;
-                    border-radius: 8px;
-                    transition: all 0.2s ease;
+                    border-radius: 12px;
+                    transition: all 0.3s ease;
                     cursor: pointer;
                     margin: 2px 0;
-                    color: var(--text-normal);
+                    color: rgba(255, 255, 255, 0.9);
+                    background: rgba(255, 255, 255, 0.05);
+                    backdrop-filter: blur(5px);
+                    -webkit-backdrop-filter: blur(5px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
                     
                     i {
-                        color: var(--text-muted);
+                        color: rgba(255, 255, 255, 0.7);
                         font-size: 0.875rem;
-                        transition: color 0.2s ease;
+                        transition: all 0.3s ease;
                     }
                     
                     &:hover {
-                        background-color: var(--background-modifier-hover);
-                        transform: translateX(2px);
+                        background: rgba(255, 255, 255, 0.15);
+                        border-color: rgba(255, 255, 255, 0.3);
+                        transform: translateX(4px);
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                        
+                        i {
+                            color: rgba(255, 255, 255, 1);
+                        }
                     }
                 }
                 
@@ -468,42 +578,47 @@ body {
                     gap: 8px;
                     
                     a {
-                        color: var(--text-normal);
+                        color: rgba(255, 255, 255, 0.9);
                         text-decoration: none;
-                        transition: color 0.2s ease;
+                        transition: all 0.3s ease;
                         font-size: 0.875rem;
                         font-weight: 400;
                         font-family: 'Inter', sans-serif;
                     }
                     
-                    // Hover state: Clear visual feedback
+                    // Hover state
                     &:hover {
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
                         
                         a {
-                            color: var(--color-accent-primary);
+                            color: rgba(255, 255, 255, 1);
                             font-weight: 500;
                         }
                         
                         i {
-                            color: var(--color-accent-primary);
+                            color: rgba(135, 206, 235, 1);
                         }
                     }
                     
-                    // Selected state: Clear indication
+                    // Glassmorphism: Selected state
                     &.active-note {
-                        background-color: var(--background-modifier-active-hover);
-                        border-left: 3px solid var(--color-accent-primary);
+                        background: rgba(135, 206, 235, 0.2);
+                        backdrop-filter: blur(10px);
+                        -webkit-backdrop-filter: blur(10px);
+                        border-left: 3px solid rgba(135, 206, 235, 1);
                         padding-left: 9px;
-                        box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15);
+                        box-shadow: 
+                            0 4px 12px rgba(135, 206, 235, 0.3),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.2);
                         
                         a {
-                            color: var(--color-accent-primary);
+                            color: rgba(255, 255, 255, 1);
                             font-weight: 600;
+                            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
                         }
                         
                         i {
-                            color: var(--color-accent-primary);
+                            color: rgba(135, 206, 235, 1);
                         }
                     }
                 }
@@ -516,42 +631,46 @@ body {
                 
                 .foldername {
                     font-weight: 500;
-                    color: var(--text-normal);
+                    color: rgba(255, 255, 255, 0.9);
                     font-size: 0.875rem;
                     font-family: 'Inter', sans-serif;
                 }
                 
                 .inner-folder {
                     margin-left: 10px;
-                    border-left: 1px solid var(--background-modifier-border);
+                    border-left: 1px solid rgba(255, 255, 255, 0.2);
                     padding-left: 6px;
                 }
             }
         }
         
-        // Shared card styling for TOC, Graph, and Backlinks
+        // Glassmorphism: Shared card styling for TOC, Graph, and Backlinks
         .toc, .graph, .backlinks, .filetree-in-sidebar {
-            background-color: var(--background-secondary);
-            border-radius: 8px;
-            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 16px;
+            padding: 16px;
             margin-bottom: 16px;
-            border: 1px solid var(--background-modifier-border);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-            color: var(--text-normal);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 8px 32px 0 rgba(31, 38, 135, 0.37),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.95);
         }
         
-        // TOC styling
+        // Glassmorphism: TOC styling
         .toc {
             .toc-title-container {
                 margin-bottom: 10px;
                 padding-bottom: 8px;
-                border-bottom: 1px solid var(--background-modifier-border);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             }
             
             .toc-title {
                 font-size: 0.875rem;
                 font-weight: 600;
-                color: var(--text-normal);
+                color: rgba(255, 255, 255, 0.95);
                 letter-spacing: 0.3px;
                 text-transform: uppercase;
                 font-family: 'Inter', sans-serif;
@@ -560,7 +679,7 @@ body {
             .toc-container {
                 font-size: 0.875rem;
                 line-height: 1.7;
-                color: var(--text-normal);
+                color: rgba(255, 255, 255, 0.9);
                 font-family: 'Inter', sans-serif;
                 
                 ul {
@@ -569,30 +688,30 @@ body {
                 
                 li {
                     padding: 6px 0;
-                    transition: all 0.2s ease;
-                    color: var(--text-normal);
+                    transition: all 0.3s ease;
+                    color: rgba(255, 255, 255, 0.9);
                     
                     &:hover {
                         transform: translateX(4px);
                         
                         a {
-                            color: var(--color-accent-primary);
+                            color: rgba(135, 206, 235, 1);
                         }
                     }
                     
                     &::before {
-                        color: var(--text-muted);
+                        color: rgba(255, 255, 255, 0.7);
                         font-size: 0.75rem;
                     }
                     
                     a {
-                        color: var(--text-normal);
-                        transition: color 0.2s ease;
+                        color: rgba(255, 255, 255, 0.9);
+                        transition: all 0.3s ease;
                         text-decoration: none;
                         font-weight: 400;
                         
                         &:hover {
-                            color: var(--color-accent-primary);
+                            color: rgba(135, 206, 235, 1);
                             font-weight: 500;
                         }
                     }
@@ -600,18 +719,18 @@ body {
             }
         }
         
-        // Graph styling
+        // Glassmorphism: Graph styling
         .graph {
             .graph-title-container {
                 margin-bottom: 10px;
                 padding-bottom: 8px;
-                border-bottom: 1px solid var(--background-modifier-border);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             }
             
             .graph-title {
                 font-size: 0.875rem;
                 font-weight: 600;
-                color: var(--text-normal);
+                color: rgba(255, 255, 255, 0.95);
                 letter-spacing: 0.2px;
                 text-transform: uppercase;
             }
@@ -622,11 +741,11 @@ body {
             }
             
             #graph-controls {
-                color: var(--text-normal);
+                color: rgba(255, 255, 255, 0.9);
                 font-size: 0.8125rem;
                 
                 label, span, i {
-                    color: var(--text-normal);
+                    color: rgba(255, 255, 255, 0.9);
                     font-size: 0.8125rem;
                 }
                 
@@ -644,73 +763,77 @@ body {
             }
         }
         
-        // Backlinks styling - Minimalist
+        // Glassmorphism: Backlinks styling
         .backlinks {
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             
             .backlink-title {
                 font-size: 0.875rem;
                 font-weight: 600;
-                color: var(--text-normal);
+                color: rgba(255, 255, 255, 0.95);
                 margin-bottom: 12px;
                 padding-bottom: 12px;
-                border-bottom: 1px solid var(--background-modifier-border);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
                 letter-spacing: 0.3px;
                 text-transform: uppercase;
                 font-family: 'Inter', sans-serif;
             }
             
             .backlink-list {
-                color: var(--text-normal);
+                color: rgba(255, 255, 255, 0.9);
             }
             
             .backlink-card {
                 padding: 10px 12px;
-                border-radius: 8px;
+                border-radius: 12px;
                 margin-bottom: 6px;
-                transition: all 0.2s ease;
+                transition: all 0.3s ease;
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                color: var(--text-normal);
+                color: rgba(255, 255, 255, 0.9);
                 cursor: pointer;
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(5px);
+                -webkit-backdrop-filter: blur(5px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
                 
                 i {
-                    color: var(--text-muted);
+                    color: rgba(255, 255, 255, 0.7);
                     font-size: 0.875rem;
-                    transition: color 0.2s ease;
+                    transition: all 0.3s ease;
                 }
                 
-                // Hover state: Clear feedback
+                // Hover state
                 &:hover {
-                    background-color: var(--background-modifier-hover);
+                    background: rgba(255, 255, 255, 0.15);
+                    border-color: rgba(255, 255, 255, 0.3);
                     transform: translateX(4px);
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
                     
                     i {
-                        color: var(--color-accent-primary);
+                        color: rgba(135, 206, 235, 1);
                     }
                 }
                 
                 .backlink {
-                    color: var(--color-accent-primary);
+                    color: rgba(135, 206, 235, 1);
                     text-decoration: none;
-                    transition: color 0.2s ease;
+                    transition: all 0.3s ease;
                     font-size: 0.875rem;
                     font-weight: 400;
                     font-family: 'Inter', sans-serif;
                     
                     &:hover {
-                        color: var(--color-accent-hover);
+                        color: rgba(255, 255, 255, 1);
                         font-weight: 500;
                         text-decoration: underline;
                     }
                 }
                 
                 .no-backlinks-message {
-                    color: var(--text-muted);
+                    color: rgba(255, 255, 255, 0.7);
                     font-size: 0.8125rem;
                     font-family: 'Inter', sans-serif;
                 }
@@ -718,114 +841,143 @@ body {
         }
     }
 
-    // Tối ưu filetree sidebar (left) - Grid Layout ready
+    // Glassmorphism: Filetree sidebar (left)
     .filetree-sidebar {
         width: 280px;
         padding: 24px 20px;
-        background-color: var(--background-secondary);
-        border-right: 1px solid var(--background-modifier-border);
-        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
-        top: 64px; // Adjusted for fixed navbar
-        color: var(--text-normal);
+        // Glassmorphism effect
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border-right: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 
+            2px 0 16px rgba(31, 38, 135, 0.37),
+            inset 1px 0 0 rgba(255, 255, 255, 0.3);
+        top: 64px;
+        color: rgba(255, 255, 255, 0.95);
+        position: relative;
+        z-index: 2;
         
         h1 {
             font-size: 1.25rem;
             font-weight: 600;
             margin-bottom: 24px;
             padding-bottom: 16px;
-            border-bottom: 2px solid var(--background-modifier-border);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
             font-family: 'Inter', sans-serif;
             letter-spacing: -0.02em;
-            color: var(--text-normal);
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         
-        // Base text color for all elements
+        // Base text color for all elements - Glassmorphism
         span, div, p, label, li, a {
-            color: var(--text-normal);
+            color: rgba(255, 255, 255, 0.9);
         }
         
-        // Reuse shared notelink styles
+        // Glassmorphism: Notelink styles
         .notelink {
             padding: 10px 12px;
-            border-radius: 8px;
+            border-radius: 12px;
             margin: 2px 0;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
             cursor: pointer;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             
             a {
-                color: var(--text-normal);
+                color: rgba(255, 255, 255, 0.9);
                 text-decoration: none;
-                transition: color 0.2s ease;
+                transition: all 0.3s ease;
                 font-size: 0.875rem;
                 font-weight: 400;
                 font-family: 'Inter', sans-serif;
             }
             
             i {
-                color: var(--text-muted);
+                color: rgba(255, 255, 255, 0.7);
                 font-size: 0.875rem;
-                transition: color 0.2s ease;
+                transition: all 0.3s ease;
             }
             
             // Hover state
             &:hover {
-                background-color: var(--background-modifier-hover);
-                transform: translateX(2px);
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                background: rgba(255, 255, 255, 0.15);
+                border-color: rgba(255, 255, 255, 0.3);
+                transform: translateX(4px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
                 
                 a {
-                    color: var(--color-accent-primary);
+                    color: rgba(255, 255, 255, 1);
                     font-weight: 500;
                 }
                 
                 i {
-                    color: var(--color-accent-primary);
+                    color: rgba(255, 255, 255, 1);
                 }
             }
             
             // Selected state
             &.active-note {
-                background-color: var(--background-modifier-active-hover);
-                border-left: 3px solid var(--color-accent-primary);
+                background: rgba(135, 206, 235, 0.2);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border-left: 3px solid rgba(135, 206, 235, 1);
                 padding-left: 9px;
-                box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15);
+                box-shadow: 
+                    0 4px 12px rgba(135, 206, 235, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
                 
                 a {
-                    color: var(--color-accent-primary);
+                    color: rgba(255, 255, 255, 1);
                     font-weight: 600;
+                    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
                 }
                 
                 i {
-                    color: var(--color-accent-primary);
+                    color: rgba(135, 206, 235, 1);
                 }
             }
         }
         
         .foldername-wrapper {
             padding: 8px 10px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
+            border-radius: 12px;
+            transition: all 0.3s ease;
             cursor: pointer;
             margin: 2px 0;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             
             &:hover {
-                background-color: var(--background-modifier-hover);
+                background: rgba(255, 255, 255, 0.15);
+                border-color: rgba(255, 255, 255, 0.3);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             }
             
             .foldername {
                 font-weight: 500;
                 font-size: 0.875rem;
                 font-family: 'Inter', sans-serif;
+                color: rgba(255, 255, 255, 0.9);
             }
             
             i {
-                color: var(--text-muted);
+                color: rgba(255, 255, 255, 0.7);
                 font-size: 0.875rem;
                 margin-right: 6px;
-                transition: color 0.2s ease;
+                transition: all 0.3s ease;
+            }
+            
+            &:hover i {
+                color: rgba(255, 255, 255, 1);
             }
         }
         
@@ -833,11 +985,12 @@ body {
             font-weight: 500;
             padding: 0;
             font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.9);
         }
         
         .inner-folder {
             margin-left: 16px;
-            border-left: 1px solid var(--background-modifier-border);
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
             padding-left: 10px;
         }
     }
