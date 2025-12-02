@@ -2,6 +2,15 @@
   Component: Posts Gallery
   Description: Hiển thị tất cả bài viết dưới dạng gallery với glassmorphism style, nhóm theo folder/category
 #}
+<div class="posts-gallery-section">
+    <div class="posts-gallery-header">
+        <h2 class="posts-gallery-title">
+            <i icon-name="grid-3x3"></i>
+            Tất cả bài viết
+        </h2>
+        <p class="posts-gallery-subtitle">Khám phá tất cả các bài viết trong Digital Garden</p>
+    </div>
+
 {% set publishedNotes = collections.note | rejectattr("data.dg-publish", "equalto", false) | rejectattr("data.dgPublish", "equalto", false) | rejectattr("url", "equalto", "/") %}
 
 {# Nhóm các bài viết theo folder từ filetree #}
@@ -71,9 +80,9 @@
                                     
                                     <div class="post-gallery-card-footer">
                                         {% if note.date %}
-                                            <time class="post-gallery-card-date" datetime="{{ note.date | date: '%Y-%m-%d' }}">
+                                            <time class="post-gallery-card-date" datetime="{{ note.date | date('%Y-%m-%d') }}">
                                                 <i icon-name="calendar"></i>
-                                                {{ note.date | date: "%d/%m/%Y" }}
+                                                {{ note.date | date('%d/%m/%Y') }}
                                             </time>
                                         {% endif %}
                                     </div>
@@ -150,9 +159,9 @@
                             
                             <div class="post-gallery-card-footer">
                                 {% if note.date %}
-                                    <time class="post-gallery-card-date" datetime="{{ note.date | date: '%Y-%m-%d' }}">
+                                    <time class="post-gallery-card-date" datetime="{{ note.date | date('%Y-%m-%d') }}">
                                         <i icon-name="calendar"></i>
-                                        {{ note.date | date: "%d/%m/%Y" }}
+                                        {{ note.date | date('%d/%m/%Y') }}
                                     </time>
                                 {% endif %}
                             </div>
@@ -206,9 +215,9 @@
                     
                     <div class="post-gallery-card-footer">
                         {% if note.date %}
-                            <time class="post-gallery-card-date" datetime="{{ note.date | date: '%Y-%m-%d' }}">
+                            <time class="post-gallery-card-date" datetime="{{ note.date | date('%Y-%m-%d') }}">
                                 <i icon-name="calendar"></i>
-                                {{ note.date | date: "%d/%m/%Y" }}
+                                {{ note.date | date('%d/%m/%Y') }}
                             </time>
                         {% endif %}
                     </div>
@@ -218,12 +227,4 @@
     </div>
 {% endif %}
 
-<div class="posts-gallery-section">
-    <div class="posts-gallery-header">
-        <h2 class="posts-gallery-title">
-            <i icon-name="grid-3x3"></i>
-            Tất cả bài viết
-        </h2>
-        <p class="posts-gallery-subtitle">Khám phá tất cả các bài viết trong Digital Garden</p>
-    </div>
-
+</div>

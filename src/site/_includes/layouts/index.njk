@@ -84,6 +84,9 @@
         {{ content | hideDataview | taggify | link | safe}}
       </article>
       
+      {# Posts Gallery #}
+      {% include "components/postsGallery.njk" %}
+      
       {# Post Heatmap #}
       {% include "components/postHeatmap.njk" %}
       

@@ -418,7 +418,7 @@
                 <template x-for="(group, index) in groups" :key="index">
                     <div class="graph-group-item">
                         <span class="graph-group-color" :style="'background: ' + (group.color || '#87CEEB')"></span>
-                        <span class="graph-group-path" x-text="'path:\"' + group.path + '\"'"></span>
+                        <span class="graph-group-path" x-text="'path: &quot;' + group.path + '&quot;'"></span>
                         <button class="graph-group-remove" @click="groups.splice(index, 1)">
                             <i icon-name="x"></i>
                         </button>

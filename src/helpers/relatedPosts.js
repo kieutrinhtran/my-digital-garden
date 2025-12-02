@@ -45,17 +45,31 @@ function getRelatedPosts(data, limit = 5) {
       // 2. Điểm từ graph connections (weight: 5)
       if (currentGraphNode && noteGraphNode) {
         // Direct links
-        if (currentGraphNode.outBound && currentGraphNode.outBound.includes(noteUrl)) {
+        if (currentGraphNode.outBound && Array.isArray(currentGraphNode.outBound) && currentGraphNode.outBound.includes(noteUrl)) {
           score += 5;
         }
-        if (currentGraphNode.backLinks && currentGraphNode.backLinks.has(noteUrl)) {
-          score += 5;
+        // Backlinks - backLinks được chuyển từ Set sang Array trong linkUtils.js
+        if (currentGraphNode.backLinks) {
+          if (Array.isArray(currentGraphNode.backLinks)) {
+            if (currentGraphNode.backLinks.includes(noteUrl)) {
+              score += 5;
+            }
+          } else if (currentGraphNode.backLinks instanceof Set) {
+            if (currentGraphNode.backLinks.has(noteUrl)) {
+              score += 5;
+            }
+          }
         }
-        // Shared neighbors
+        // Shared neighbors - neighbors cũng được chuyển từ Set sang Array
         if (currentGraphNode.neighbors && noteGraphNode.neighbors) {
-          const sharedNeighbors = [...currentGraphNode.neighbors].filter(n => 
-            noteGraphNode.neighbors.has(n)
-          );
+          const currentNeighbors = Array.isArray(currentGraphNode.neighbors) 
+            ? currentGraphNode.neighbors 
+            : (currentGraphNode.neighbors instanceof Set ? [...currentGraphNode.neighbors] : []);
+          const noteNeighbors = Array.isArray(noteGraphNode.neighbors) 
+            ? new Set(noteGraphNode.neighbors)
+            : (noteGraphNode.neighbors instanceof Set ? noteGraphNode.neighbors : new Set());
+          
+          const sharedNeighbors = currentNeighbors.filter(n => noteNeighbors.has(n));
           score += sharedNeighbors.length * 2;
         }
       }

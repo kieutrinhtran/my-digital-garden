@@ -16,7 +16,7 @@
                 {% if post.date %}
                 <div class="related-post-meta">
                     <i icon-name="calendar"></i>
-                    <time datetime="{{ post.date | dateToZulu }}">{{ post.date | date: "%d/%m/%Y" }}</time>
+                    <time datetime="{{ post.date | dateToZulu }}">{{ post.date | date('%d/%m/%Y') }}</time>
                 </div>
                 {% endif %}
             </div>

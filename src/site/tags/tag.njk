@@ -39,7 +39,7 @@ eleventyComputed:
                         {% if note.date %}
                         <time datetime="{{ note.date | dateToZulu }}">
                             <i icon-name="calendar"></i>
-                            {{ note.date | date: "%d/%m/%Y" }}
+                            {{ note.date | date('%d/%m/%Y') }}
                         </time>
                         {% endif %}
                     </div>

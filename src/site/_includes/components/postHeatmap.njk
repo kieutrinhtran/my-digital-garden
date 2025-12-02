@@ -43,7 +43,7 @@
                 <div class="heatmap-week">
                     {% for day in week %}
                     <div 
-                        class="heatmap-day intensity-{{ day.intensity }} {{ day.isEmpty ? 'empty' : '' }}"
+                        class="heatmap-day intensity-{{ day.intensity }}{% if day.isEmpty %} empty{% endif %}"
                         data-date="{{ day.date }}"
                         data-count="{{ day.count }}"
                         @mouseenter="selectedDate = '{{ day.date }}'; selectedCount = {{ day.count }}"

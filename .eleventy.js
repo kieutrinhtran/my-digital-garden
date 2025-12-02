@@ -324,6 +324,11 @@ module.exports = function (eleventyConfig) {
     return date && date.toISOString();
   });
 
+  eleventyConfig.addFilter("startsWith", function (str, prefix) {
+    if (!str || !prefix) return false;
+    return String(str).startsWith(String(prefix));
+  });
+
   eleventyConfig.addFilter("link", function (str) {
     if (!str) return str;
     return str.replace(wikiLinkRegex, function (match, p1) {
@@ -600,6 +605,38 @@ module.exports = function (eleventyConfig) {
     }
   });
   
+  // Filter để format date với format string
+  eleventyConfig.addFilter("date", function (date, format) {
+    if (!date) return "";
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return "";
+      
+      if (!format || format === "") {
+        return d.toLocaleDateString();
+      }
+      
+      // Parse format string và convert sang JavaScript date format
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const seconds = String(d.getSeconds()).padStart(2, '0');
+      
+      return format
+        .replace(/%d/g, day)
+        .replace(/%m/g, month)
+        .replace(/%Y/g, year)
+        .replace(/%y/g, String(year).slice(-2))
+        .replace(/%H/g, hours)
+        .replace(/%M/g, minutes)
+        .replace(/%S/g, seconds);
+    } catch {
+      return "";
+    }
+  });
+  
   eleventyConfig.addFilter("jsonify", function (variable) {
     return JSON.stringify(variable) || '""';
   });
@@ -629,6 +666,54 @@ module.exports = function (eleventyConfig) {
       result.push(i);
     }
     return result;
+  });
+  
+  // Filter để reject items dựa trên attribute
+  eleventyConfig.addFilter("rejectattr", function(array, attr, operator, value) {
+    if (!Array.isArray(array)) return array;
+    return array.filter(item => {
+      const attrValue = getNestedValue(item, attr);
+      if (operator === "equalto") {
+        return attrValue !== value;
+      }
+      return true;
+    });
+  });
+  
+  // Helper function để lấy nested value từ object
+  function getNestedValue(obj, path) {
+    const keys = path.split('.');
+    let value = obj;
+    for (const key of keys) {
+      if (value && typeof value === 'object' && key in value) {
+        value = value[key];
+      } else {
+        return undefined;
+      }
+    }
+    return value;
+  }
+  
+  // Filter để concat arrays
+  eleventyConfig.addFilter("concat", function(array1, array2) {
+    if (!Array.isArray(array1)) array1 = [];
+    if (!Array.isArray(array2)) array2 = [];
+    return array1.concat(array2);
+  });
+  
+  // Filter để strip HTML tags
+  eleventyConfig.addFilter("striptags", function(str) {
+    if (!str) return "";
+    return String(str).replace(/<[^>]*>/g, '').trim();
+  });
+  
+  // Filter để truncate string
+  eleventyConfig.addFilter("truncate", function(str, length) {
+    if (!str) return "";
+    const strLength = parseInt(length) || 100;
+    const cleanStr = String(str).replace(/<[^>]*>/g, '').trim();
+    if (cleanStr.length <= strLength) return cleanStr;
+    return cleanStr.substring(0, strLength) + '...';
   });
 
   eleventyConfig.addPlugin(pluginRss, {

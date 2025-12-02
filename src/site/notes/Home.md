@@ -6,5 +6,3 @@
 
 Đây là nơi tôi lưu trữ và chia sẻ kiến thức của mình.
 
-{% include "components/postsGallery.njk" %}
-

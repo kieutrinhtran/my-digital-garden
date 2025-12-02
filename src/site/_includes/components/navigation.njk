@@ -3,6 +3,13 @@
   Description: Next/Previous navigation buttons at the end of article
 #}
 <nav class="article-navigation">
+    {# View Counter - Hiển thị trên navigation buttons #}
+    <div class="view-counter" data-page-url="{{ permalink }}">
+        <i icon-name="eye"></i>
+        <span class="view-counter-label">Lượt xem:</span>
+        <span class="view-counter-number" id="view-count-{{ page.fileSlug }}">0</span>
+    </div>
+    
     <div class="article-navigation-container">
         {% if navigation.previous %}
         <a href="{{ navigation.previous.permalink }}" class="nav-button nav-button-previous">
@@ -47,13 +54,6 @@
             </div>
         </div>
         {% endif %}
-    </div>
-    
-    {# View Counter #}
-    <div class="view-counter" data-page-url="{{ permalink }}">
-        <i icon-name="eye"></i>
-        <span class="view-counter-label">Lượt xem:</span>
-        <span class="view-counter-number" id="view-count-{{ page.fileSlug }}">0</span>
     </div>
 </nav>
 

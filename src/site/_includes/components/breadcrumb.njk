@@ -12,7 +12,7 @@
                 <span>Home</span>
             </a>
         </li>
-        {% if page.url starts with "/notes/" %}
+        {% if page.url | startsWith("/notes/") %}
         <li class="breadcrumb-item">
             <span class="breadcrumb-separator">
                 <i icon-name="chevron-right"></i>
@@ -20,7 +20,7 @@
             <a href="/notes/" class="breadcrumb-link">Notes</a>
         </li>
         {% endif %}
-        {% if page.url starts with "/tags/" %}
+        {% if page.url | startsWith("/tags/") %}
         <li class="breadcrumb-item">
             <span class="breadcrumb-separator">
                 <i icon-name="chevron-right"></i>
