@@ -728,6 +728,10 @@ module.exports = function (eleventyConfig) {
   // Filter note collection to only include published notes
   eleventyConfig.addCollection("note", function(collectionApi) {
     return collectionApi.getFilteredByTag("note").filter(function(item) {
+      // Exclude Home.md from note collection (it's now index.njk)
+      if (item.inputPath && item.inputPath.includes("Home.md")) {
+        return false;
+      }
       // Include if dg-publish is true or not set (default to published)
       // Also check for dgPublish (camelCase) for compatibility
       const dgPublish = item.data["dg-publish"] !== undefined 

@@ -75,6 +75,140 @@ function generatePostHeatmap(notes) {
 }
 
 /**
+ * Tạo dữ liệu heatmap cho 1 tháng gần nhất
+ */
+function generateMonthHeatmap(notes) {
+  const today = new Date();
+  const oneMonthAgo = new Date(today);
+  oneMonthAgo.setMonth(today.getMonth() - 1);
+  
+  const dateMap = new Map();
+  const currentDate = new Date(oneMonthAgo);
+  
+  while (currentDate <= today) {
+    const dateKey = formatDateKey(currentDate);
+    dateMap.set(dateKey, 0);
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  notes.forEach(note => {
+    const noteDate = note.date || note.data.date;
+    if (!noteDate) return;
+    
+    const date = new Date(noteDate);
+    if (date >= oneMonthAgo && date <= today) {
+      const dateKey = formatDateKey(date);
+      const currentCount = dateMap.get(dateKey) || 0;
+      dateMap.set(dateKey, currentCount + 1);
+    }
+  });
+  
+  const heatmapData = [];
+  let maxCount = 0;
+  
+  dateMap.forEach((count, dateKey) => {
+    if (count > maxCount) maxCount = count;
+    const date = parseDateKey(dateKey);
+    heatmapData.push({
+      date: dateKey,
+      dateObj: date,
+      count: count,
+      intensity: 0
+    });
+  });
+  
+  heatmapData.forEach(item => {
+    if (maxCount === 0) {
+      item.intensity = 0;
+    } else {
+      const ratio = item.count / maxCount;
+      if (ratio === 0) item.intensity = 0;
+      else if (ratio <= 0.25) item.intensity = 1;
+      else if (ratio <= 0.5) item.intensity = 2;
+      else if (ratio <= 0.75) item.intensity = 3;
+      else item.intensity = 4;
+    }
+  });
+  
+  heatmapData.sort((a, b) => a.dateObj - b.dateObj);
+  
+  return {
+    data: heatmapData,
+    maxCount: maxCount,
+    totalDays: heatmapData.length,
+    startDate: oneMonthAgo,
+    endDate: today
+  };
+}
+
+/**
+ * Tạo dữ liệu heatmap cho 1 tuần gần nhất
+ */
+function generateWeekHeatmap(notes) {
+  const today = new Date();
+  const oneWeekAgo = new Date(today);
+  oneWeekAgo.setDate(today.getDate() - 7);
+  
+  const dateMap = new Map();
+  const currentDate = new Date(oneWeekAgo);
+  
+  while (currentDate <= today) {
+    const dateKey = formatDateKey(currentDate);
+    dateMap.set(dateKey, 0);
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  notes.forEach(note => {
+    const noteDate = note.date || note.data.date;
+    if (!noteDate) return;
+    
+    const date = new Date(noteDate);
+    if (date >= oneWeekAgo && date <= today) {
+      const dateKey = formatDateKey(date);
+      const currentCount = dateMap.get(dateKey) || 0;
+      dateMap.set(dateKey, currentCount + 1);
+    }
+  });
+  
+  const heatmapData = [];
+  let maxCount = 0;
+  
+  dateMap.forEach((count, dateKey) => {
+    if (count > maxCount) maxCount = count;
+    const date = parseDateKey(dateKey);
+    heatmapData.push({
+      date: dateKey,
+      dateObj: date,
+      count: count,
+      intensity: 0
+    });
+  });
+  
+  heatmapData.forEach(item => {
+    if (maxCount === 0) {
+      item.intensity = 0;
+    } else {
+      const ratio = item.count / maxCount;
+      if (ratio === 0) item.intensity = 0;
+      else if (ratio <= 0.25) item.intensity = 1;
+      else if (ratio <= 0.5) item.intensity = 2;
+      else if (ratio <= 0.75) item.intensity = 3;
+      else item.intensity = 4;
+    }
+  });
+  
+  heatmapData.sort((a, b) => a.dateObj - b.dateObj);
+  
+  return {
+    data: heatmapData,
+    maxCount: maxCount,
+    totalDays: heatmapData.length,
+    startDate: oneWeekAgo,
+    endDate: today
+  };
+}
+
+/**
  * Format date thành key YYYY-MM-DD
  */
 function formatDateKey(date) {
@@ -159,6 +293,8 @@ function groupByWeeks(heatmapData) {
 
 module.exports = {
   generatePostHeatmap,
+  generateMonthHeatmap,
+  generateWeekHeatmap,
   groupByWeeks
 };
 

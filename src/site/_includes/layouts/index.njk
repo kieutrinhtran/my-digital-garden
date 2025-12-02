@@ -81,7 +81,9 @@
       {% endfor %}
       
       <article class="content-body">
-        {{ content | hideDataview | taggify | link | safe}}
+        {% if content %}
+          {{ content | hideDataview | taggify | link | safe}}
+        {% endif %}
       </article>
       
       {# Posts Gallery #}

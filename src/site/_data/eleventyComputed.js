@@ -3,7 +3,7 @@ const { getFileTree } = require("../../helpers/filetreeUtils");
 const { userComputed } = require("../../helpers/userUtils");
 const { getNextPreviousNotes } = require("../../helpers/navigationUtils");
 const { getRelatedPosts } = require("../../helpers/relatedPosts");
-const { generatePostHeatmap, groupByWeeks } = require("../../helpers/postHeatmap");
+const { generatePostHeatmap, generateMonthHeatmap, generateWeekHeatmap, groupByWeeks } = require("../../helpers/postHeatmap");
 
 module.exports = {
   graph: async (data) => await getGraph(data),
@@ -49,14 +49,47 @@ module.exports = {
   // Post Heatmap
   postHeatmap: (data) => {
     const notes = data.collections.note || [];
-    const heatmapData = generatePostHeatmap(notes);
-    const weeks = groupByWeeks(heatmapData.data);
+    
+    // Year view (1 year)
+    const yearData = generatePostHeatmap(notes);
+    const yearWeeks = groupByWeeks(yearData.data);
+    
+    // Month view (1 month)
+    const monthData = generateMonthHeatmap(notes);
+    const monthWeeks = groupByWeeks(monthData.data);
+    
+    // Week view (1 week)
+    const weekData = generateWeekHeatmap(notes);
+    const weekWeeks = groupByWeeks(weekData.data);
+    
     return {
-      weeks: weeks,
-      maxCount: heatmapData.maxCount,
-      totalDays: heatmapData.totalDays,
-      startDate: heatmapData.startDate,
-      endDate: heatmapData.endDate
+      year: {
+        weeks: yearWeeks,
+        maxCount: yearData.maxCount,
+        totalDays: yearData.totalDays,
+        startDate: yearData.startDate,
+        endDate: yearData.endDate
+      },
+      month: {
+        weeks: monthWeeks,
+        maxCount: monthData.maxCount,
+        totalDays: monthData.totalDays,
+        startDate: monthData.startDate,
+        endDate: monthData.endDate
+      },
+      week: {
+        weeks: weekWeeks,
+        maxCount: weekData.maxCount,
+        totalDays: weekData.totalDays,
+        startDate: weekData.startDate,
+        endDate: weekData.endDate
+      },
+      // Default view (year) for backward compatibility
+      weeks: yearWeeks,
+      maxCount: yearData.maxCount,
+      totalDays: yearData.totalDays,
+      startDate: yearData.startDate,
+      endDate: yearData.endDate
     };
   }
 };
