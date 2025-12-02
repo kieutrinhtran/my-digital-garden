@@ -612,6 +612,24 @@ module.exports = function (eleventyConfig) {
     }
     return variable;
   });
+  
+  // Filter để lọc notes theo tag
+  eleventyConfig.addFilter("filterByTag", function(notes, tag) {
+    if (!Array.isArray(notes) || !tag) return [];
+    return notes.filter(note => {
+      const tags = note.data?.tags || [];
+      return Array.isArray(tags) && tags.includes(tag);
+    });
+  });
+  
+  // Filter để tạo range
+  eleventyConfig.addFilter("range", function(start, end) {
+    const result = [];
+    for (let i = start; i < end; i++) {
+      result.push(i);
+    }
+    return result;
+  });
 
   eleventyConfig.addPlugin(pluginRss, {
     posthtmlRenderOptions: {
@@ -632,6 +650,34 @@ module.exports = function (eleventyConfig) {
         : item.data.dgPublish;
       return dgPublish !== false;
     });
+  });
+  
+  // Collection tất cả tags từ notes
+  eleventyConfig.addCollection("allTags", function(collectionApi) {
+    const notes = collectionApi.getFilteredByTag("note");
+    const allTags = new Set();
+    
+    notes.forEach(note => {
+      const tags = note.data?.tags || [];
+      if (Array.isArray(tags)) {
+        tags.forEach(tag => {
+          // Loại bỏ các tag hệ thống
+          if (tag !== "note" && tag !== "gardenEntry") {
+            allTags.add(tag);
+          }
+        });
+      }
+    });
+    
+    return Array.from(allTags).sort();
+  });
+  
+  // Filter để lấy length của array
+  eleventyConfig.addFilter("length", function(array) {
+    if (Array.isArray(array)) {
+      return array.length;
+    }
+    return 0;
   });
 
   return {

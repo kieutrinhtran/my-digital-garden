@@ -81,6 +81,9 @@
         {{ content | hideDataview | taggify | link | safe}}
       </article>
       
+      {# Post Heatmap #}
+      {% include "components/postHeatmap.njk" %}
+      
       {% for imp in dynamics.common.afterContent %}
         {% include imp %}
       {% endfor %}
@@ -107,5 +110,6 @@
     
     {%include "components/lucideIcons.njk"%}
     {%include "components/vercelAnalytics.njk"%}
+    {%include "components/backToTop.njk"%}
   </body>
 </html>

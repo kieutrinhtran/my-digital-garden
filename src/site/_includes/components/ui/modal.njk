@@ -1,0 +1,21 @@
+{# 
+  Component: Modal/Dialog
+  Usage: {% include "components/ui/modal.njk" with {id: "myModal", title: "Title", content: "Content"} %}
+#}
+<div class="modal-overlay" id="modal-{{ id }}" x-data="{ isOpen: false }" x-show="isOpen" @click.away="isOpen = false" style="display: none;">
+    <div class="modal-container" @click.stop>
+        <div class="modal-header">
+            <h3 class="modal-title">{{ title }}</h3>
+            <button class="modal-close" @click="isOpen = false" aria-label="Đóng">
+                <i icon-name="x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            {{ content | safe }}
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" @click="isOpen = false">Đóng</button>
+        </div>
+    </div>
+</div>
+

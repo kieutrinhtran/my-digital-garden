@@ -1,0 +1,29 @@
+{# 
+  Component: Related Posts
+  Description: Hiển thị các bài viết liên quan
+#}
+{% if relatedPosts and relatedPosts.length > 0 %}
+<div class="related-posts">
+    <h3 class="related-posts-title">
+        <i icon-name="link"></i>
+        Bài viết liên quan
+    </h3>
+    <div class="related-posts-grid">
+        {% for post in relatedPosts %}
+        <a href="{{ post.url }}" class="related-post-card">
+            <div class="related-post-content">
+                <h4 class="related-post-title">{{ post.title }}</h4>
+                {% if post.date %}
+                <div class="related-post-meta">
+                    <i icon-name="calendar"></i>
+                    <time datetime="{{ post.date | dateToZulu }}">{{ post.date | date: "%d/%m/%Y" }}</time>
+                </div>
+                {% endif %}
+            </div>
+            <i icon-name="arrow-right" class="related-post-arrow"></i>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+

@@ -84,6 +84,14 @@ permalink: "notes/{{ page.fileSlug | slugify }}/"
         {{ content | hideDataview | taggify | link | safe}}
       </article>
       
+      {# Navigation: Next/Previous buttons #}
+      {% include "components/navigation.njk" %}
+      
+      {# Related Posts #}
+      {% if relatedPosts and relatedPosts.length > 0 %}
+      {% include "components/relatedPosts.njk" %}
+      {% endif %}
+      
       {% for imp in dynamics.common.afterContent %}
         {% include imp %}
       {% endfor %}
@@ -110,5 +118,6 @@ permalink: "notes/{{ page.fileSlug | slugify }}/"
     
     {%include "components/lucideIcons.njk"%}
     {%include "components/vercelAnalytics.njk"%}
+    {%include "components/backToTop.njk"%}
   </body>
 </html>

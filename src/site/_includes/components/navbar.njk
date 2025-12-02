@@ -1,6 +1,6 @@
 {# 
   Component: Navbar
-  Description: Main navigation bar component with optional home link and search button
+  Description: Main navigation bar component with horizontal menu and dropdown
   Props:
     - settings.dgHomeLink: Show/hide home link
     - settings.dgEnableSearch: Show/hide search button
@@ -10,17 +10,88 @@
     <nav class="navbar">
         <div class="navbar-inner">
             {% if settings.dgShowFileTree === true %}
-                <span style="font-size: 1.5rem; margin-right: 10px;" @click="showFilesMobile=!showFilesMobile"><i icon-name="menu"></i></span>
+                <span class="mobile-menu-toggle" @click="showFilesMobile=!showFilesMobile"><i icon-name="menu"></i></span>
             {% endif %}
             {% for imp in dynamics.filetree.beforeTitle %}
                 {% include imp %}
             {% endfor %}
-            <a href="/" style="text-decoration: none;">
-                <h1 style="margin: 15px !important;">{{meta.siteName}}</h1>
+            <a href="/" class="navbar-logo">
+                <h1>{{meta.siteName}}</h1>
             </a>
             {% for imp in dynamics.filetree.afterTitle %}
                 {% include imp %}
             {% endfor %}
+            
+            {# Horizontal Menu với Dropdown #}
+            {% if filetree %}
+            <ul class="navbar-menu">
+                {%- for folderName, folder in filetree -%}
+                    {% if folder.isFolder %}
+                        <li class="navbar-menu-item" x-data="{isOpen: false}">
+                            <a href="#" 
+                               class="navbar-menu-link"
+                               @click.prevent="isOpen = !isOpen"
+                               @mouseenter="isOpen = true"
+                               @mouseleave="isOpen = false">
+                                {{ folderName }}
+                                <i icon-name="chevron-down" class="dropdown-icon"></i>
+                            </a>
+                            {% set hasItems = false %}
+                            {%- for itemName, item in folder -%}
+                                {% if (item.isNote and not item.hide) or item.isFolder %}
+                                    {% set hasItems = true %}
+                                {% endif %}
+                            {%- endfor -%}
+                            {% if hasItems %}
+                                <ul class="navbar-dropdown" 
+                                    x-show="isOpen" 
+                                    @click.away="isOpen = false"
+                                    x-transition:enter="transition ease-out duration-200"
+                                    x-transition:enter-start="opacity-0 transform -translate-y-1"
+                                    x-transition:enter-end="opacity-100 transform translate-y-0"
+                                    x-transition:leave="transition ease-in duration-150"
+                                    x-transition:leave-start="opacity-100 transform translate-y-0"
+                                    x-transition:leave-end="opacity-0 transform -translate-y-1">
+                                    {%- for itemName, item in folder -%}
+                                        {% if item.isNote and not item.hide %}
+                                            <li>
+                                                <a href="{{ item.permalink }}" 
+                                                   class="navbar-dropdown-item">
+                                                    {{ item.name }}
+                                                </a>
+                                            </li>
+                                        {% elif item.isFolder %}
+                                            <li class="navbar-dropdown-submenu">
+                                                <span class="navbar-dropdown-submenu-title">{{ itemName }}</span>
+                                                <ul>
+                                                    {%- for subItemName, subItem in item -%}
+                                                        {% if subItem.isNote and not subItem.hide %}
+                                                            <li>
+                                                                <a href="{{ subItem.permalink }}" 
+                                                                   class="navbar-dropdown-item">
+                                                                    {{ subItem.name }}
+                                                                </a>
+                                                            </li>
+                                                        {% endif %}
+                                                    {%- endfor -%}
+                                                </ul>
+                                            </li>
+                                        {% endif %}
+                                    {%- endfor -%}
+                                </ul>
+                            {% endif %}
+                        </li>
+                    {% elif folder.isNote and not folder.hide %}
+                        <li class="navbar-menu-item">
+                            <a href="{{ folder.permalink }}" 
+                               class="navbar-menu-link">
+                                {{ folderName }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {%- endfor -%}
+            </ul>
+            {% endif %}
         </div>
         {% if settings.dgEnableSearch === true%}
             {% include "components/searchButton.njk" %}

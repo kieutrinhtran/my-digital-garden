@@ -1,29 +1,16 @@
+---
+permalink: /404.html
+layout: layouts/note.njk
+---
 
-<!DOCTYPE html>
-<html lang="{{ meta.mainLanguage }}">
-    <head>
-        <title>Nothing here</title>
-        <link href="/styles/digital-garden-base.css" rel="stylesheet">
-        {%-if meta.themeStyle%}
-            <link href="/styles/obsidian-base.css" rel="stylesheet">
-    	    <link href="{{meta.themeStyle}}" rel="stylesheet">
-        {% else %}
-            <link href="/styles/style.css" rel="stylesheet">
-        {%endif%}
-
-        <link href="/styles/custom-style.css" rel="stylesheet">
-        
-    </head>
-    <body class="theme-{{meta.baseTheme}} markdown-preview-view">
-        <div class="content centered">
-
-            {%-if not meta.themeStyle%}
-                <div class="font-bg"> &#x1F60E; </div>
-            {%endif%}
-            <h1>There is nothing here</h1>
-            <p>If you got here from a link, this note is probably not made public</p>
-            <a href="/">Go back home</a>
+<div class="error-page">
+    <div class="error-content">
+        <h1 class="error-code">404</h1>
+        <h2 class="error-title">Trang không tìm thấy</h2>
+        <p class="error-message">Xin lỗi, trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.</p>
+        <div class="error-actions">
+            <a href="/" class="btn btn-primary">Về trang chủ</a>
+            <button onclick="window.history.back()" class="btn btn-secondary">Quay lại</button>
         </div>
-        {%include "components/vercelAnalytics.njk"%}
-    </body>
-</html>
+    </div>
+</div>

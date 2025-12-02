@@ -1,0 +1,17 @@
+{# 
+  Component: Empty State
+  Usage: {% include "components/ui/emptyState.njk" with {icon: "inbox", title: "Không có dữ liệu", message: "Message"} %}
+#}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i icon-name="{{ icon || 'inbox' }}"></i>
+    </div>
+    <h3 class="empty-state-title">{{ title || "Không có dữ liệu" }}</h3>
+    {% if message %}
+    <p class="empty-state-message">{{ message }}</p>
+    {% endif %}
+    {% if action %}
+    <button class="btn btn-primary empty-state-action">{{ action }}</button>
+    {% endif %}
+</div>
+

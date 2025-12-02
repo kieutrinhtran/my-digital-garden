@@ -1,0 +1,114 @@
+{# 
+  Component: SEO Meta Tags
+  Description: Open Graph, Schema, Canonical URLs
+#}
+{% set seo = seoMeta %}
+{% set siteName = meta.siteName %}
+{% set siteBaseUrl = meta.siteBaseUrl %}
+
+{# Basic Meta #}
+<title>{% if seo.title %}{{ seo.title }}{% if not tags or not tags.includes("gardenEntry") %} - {{ siteName }}{% endif %}{% else %}{{ siteName }}{% endif %}</title>
+<meta name="description" content="{{ seo.description }}">
+<meta name="author" content="{{ seo.author }}">
+
+{# Canonical URL #}
+<link rel="canonical" href="{{ seo.canonical }}">
+
+{# Open Graph / Facebook #}
+<meta property="og:type" content="{{ seo.type }}">
+<meta property="og:url" content="{{ seo.url }}">
+<meta property="og:title" content="{{ seo.title }}">
+<meta property="og:description" content="{{ seo.description }}">
+<meta property="og:image" content="{{ seo.image }}">
+<meta property="og:site_name" content="{{ siteName }}">
+
+{# Twitter Card #}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="{{ seo.url }}">
+<meta name="twitter:title" content="{{ seo.title }}">
+<meta name="twitter:description" content="{{ seo.description }}">
+<meta name="twitter:image" content="{{ seo.image }}">
+
+{# Article specific (nếu là article) #}
+{% if seo.type === "article" %}
+<meta property="article:published_time" content="{{ seo.publishedTime }}">
+{% if seo.modifiedTime %}
+<meta property="article:modified_time" content="{{ seo.modifiedTime }}">
+{% endif %}
+{% if seo.tags %}
+{% for tag in seo.tags %}
+{% if tag != "note" and tag != "gardenEntry" %}
+<meta property="article:tag" content="{{ tag }}">
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{# Schema.org Structured Data #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "{% if seo.type === 'article' %}Article{% else %}WebSite{% endif %}",
+  "headline": "{{ seo.title }}",
+  "description": "{{ seo.description }}",
+  "url": "{{ seo.url }}",
+  "image": "{{ seo.image }}",
+  {% if seo.type === "article" %}
+  "datePublished": "{{ seo.publishedTime }}",
+  {% if seo.modifiedTime %}
+  "dateModified": "{{ seo.modifiedTime }}",
+  {% endif %}
+  "author": {
+    "@type": "Person",
+    "name": "{{ seo.author }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "{{ siteName }}",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ siteBaseUrl }}/img/logo.png"
+    }
+  },
+  {% endif %}
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ seo.url }}"
+  }
+}
+</script>
+
+{# Breadcrumb Schema #}
+{% if permalink and permalink != "/" %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "{{ siteName }}",
+      "item": "{{ siteBaseUrl }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ seo.title }}",
+      "item": "{{ seo.url }}"
+    }
+  ]
+}
+</script>
+{% endif %}
+
+{# Site Navigation Schema #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SiteNavigationElement",
+  "name": "{{ siteName }}",
+  "url": "{{ siteBaseUrl }}"
+}
+</script>
+

@@ -1,0 +1,51 @@
+---
+pagination:
+  data: collections.allTags
+  size: 1
+  alias: tag
+permalink: /tags/{{ tag | slugify }}/index.html
+eleventyComputed:
+  title: "Tag: {{ tag }}"
+---
+{% set tagName = tag %}
+{% set taggedNotes = collections.note | filterByTag(tagName) %}
+{% set taggedCount = taggedNotes | length %}
+
+<div class="tag-page">
+    <header class="tag-header">
+        <div class="tag-badge">
+            <i icon-name="tag"></i>
+            <span>Tag</span>
+        </div>
+        <h1 class="tag-title">{{ tagName }}</h1>
+        <p class="tag-count">{{ taggedCount }} bài viết</p>
+    </header>
+    
+    <div class="tag-posts">
+        {% if taggedCount > 0 %}
+        <div class="posts-grid">
+            {% for note in taggedNotes %}
+            <article class="post-card">
+                <a href="{{ note.url }}" class="post-card-link">
+                    <h3 class="post-card-title">{{ note.data.title || note.fileSlug }}</h3>
+                    {% if note.data.description %}
+                    <p class="post-card-description">{{ note.data.description }}</p>
+                    {% endif %}
+                    <div class="post-card-meta">
+                        {% if note.date %}
+                        <time datetime="{{ note.date | dateToZulu }}">
+                            <i icon-name="calendar"></i>
+                            {{ note.date | date: "%d/%m/%Y" }}
+                        </time>
+                        {% endif %}
+                    </div>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        {% include "components/ui/emptyState.njk" with {icon: "tag", title: "Không có bài viết", message: "Chưa có bài viết nào với tag này."} %}
+        {% endif %}
+    </div>
+</div>
+

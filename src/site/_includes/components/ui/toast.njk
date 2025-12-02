@@ -1,0 +1,51 @@
+{# 
+  Component: Toast/Notification
+  Usage: Trigger via JavaScript: showToast('Message', 'success')
+#}
+<div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+function showToast(message, type = 'info', duration = 3000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.setAttribute('role', 'alert');
+    
+    const iconMap = {
+        success: 'check-circle',
+        error: 'alert-circle',
+        warning: 'alert-triangle',
+        info: 'info'
+    };
+    
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <i icon-name="${iconMap[type] || 'info'}"></i>
+        </div>
+        <div class="toast-message">${message}</div>
+        <button class="toast-close" aria-label="Đóng">
+            <i icon-name="x"></i>
+        </button>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Auto remove
+    const removeToast = () => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    };
+    
+    toast.querySelector('.toast-close').addEventListener('click', removeToast);
+    
+    if (duration > 0) {
+        setTimeout(removeToast, duration);
+    }
+}
+</script>
+

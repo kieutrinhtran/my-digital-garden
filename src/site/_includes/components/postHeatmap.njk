@@ -1,0 +1,125 @@
+{# 
+  Component: Post Heatmap
+  Description: Hiển thị heatmap số bài đăng theo ngày (GitHub-style)
+#}
+{% if postHeatmap and postHeatmap.weeks %}
+<div class="post-heatmap-container" x-data="{ selectedDate: null, selectedCount: null }">
+    <div class="post-heatmap-header">
+        <h3 class="post-heatmap-title">
+            <i icon-name="calendar"></i>
+            Hoạt động đăng bài
+        </h3>
+        <div class="post-heatmap-stats">
+            <span class="heatmap-stat">
+                <strong>{{ postHeatmap.totalDays }}</strong> ngày
+            </span>
+            <span class="heatmap-stat">
+                <strong>{{ collections.note | length }}</strong> bài viết
+            </span>
+        </div>
+    </div>
+    
+    <div class="post-heatmap-wrapper">
+        <div class="post-heatmap-months">
+            {% set months = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"] %}
+            {% for i in range(0, 12) %}
+            <span class="heatmap-month-label"></span>
+            {% endfor %}
+        </div>
+        
+        <div class="post-heatmap-content">
+            <div class="heatmap-weekdays">
+                <span class="weekday-label"></span>
+                <span class="weekday-label">T2</span>
+                <span class="weekday-label"></span>
+                <span class="weekday-label">T4</span>
+                <span class="weekday-label"></span>
+                <span class="weekday-label">T6</span>
+                <span class="weekday-label"></span>
+            </div>
+            
+            <div class="heatmap-grid">
+                {% for week in postHeatmap.weeks %}
+                <div class="heatmap-week">
+                    {% for day in week %}
+                    <div 
+                        class="heatmap-day intensity-{{ day.intensity }} {{ day.isEmpty ? 'empty' : '' }}"
+                        data-date="{{ day.date }}"
+                        data-count="{{ day.count }}"
+                        @mouseenter="selectedDate = '{{ day.date }}'; selectedCount = {{ day.count }}"
+                        @mouseleave="selectedDate = null; selectedCount = null"
+                        title="{{ day.date }}: {{ day.count }} bài viết">
+                        {% if day.count > 0 %}
+                        <span class="heatmap-day-count">{{ day.count }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="post-heatmap-footer">
+        <div class="heatmap-legend">
+            <span class="legend-label">Ít hơn</span>
+            <div class="legend-squares">
+                <div class="legend-square intensity-0"></div>
+                <div class="legend-square intensity-1"></div>
+                <div class="legend-square intensity-2"></div>
+                <div class="legend-square intensity-3"></div>
+                <div class="legend-square intensity-4"></div>
+            </div>
+            <span class="legend-label">Nhiều hơn</span>
+        </div>
+        
+        <div class="heatmap-tooltip" x-show="selectedDate" style="display: none;">
+            <div class="tooltip-date" x-text="selectedDate"></div>
+            <div class="tooltip-count" x-text="selectedCount + ' bài viết'"></div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tính toán và hiển thị tháng labels
+    const heatmapGrid = document.querySelector('.heatmap-grid');
+    if (!heatmapGrid) return;
+    
+    const monthLabels = document.querySelectorAll('.heatmap-month-label');
+    const weeks = document.querySelectorAll('.heatmap-week');
+    
+    if (weeks.length === 0 || monthLabels.length === 0) return;
+    
+    // Tính số tuần trong mỗi tháng
+    const monthPositions = {};
+    let currentMonth = -1;
+    
+    weeks.forEach((week, weekIndex) => {
+        const firstDay = week.querySelector('.heatmap-day:not(.empty)');
+        if (firstDay) {
+            const dateStr = firstDay.getAttribute('data-date');
+            if (dateStr) {
+                const date = new Date(dateStr);
+                const month = date.getMonth();
+                
+                if (month !== currentMonth) {
+                    monthPositions[month] = weekIndex;
+                    currentMonth = month;
+                }
+            }
+        }
+    });
+    
+    // Hiển thị tháng labels
+    const monthNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+    monthLabels.forEach((label, index) => {
+        if (monthPositions[index] !== undefined) {
+            label.textContent = monthNames[index];
+            label.style.gridColumn = monthPositions[index] + 1;
+        }
+    });
+});
+</script>
+

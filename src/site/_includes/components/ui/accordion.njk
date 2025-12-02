@@ -1,0 +1,20 @@
+{# 
+  Component: Accordion
+  Usage: {% include "components/ui/accordion.njk" with {items: [{title: "Title", content: "Content"}, ...]} %}
+#}
+<div class="accordion-container">
+    {% for item in items %}
+    <div class="accordion-item" x-data="{ isOpen: {{ loop.first ? 'true' : 'false' }} }">
+        <button class="accordion-header" @click="isOpen = !isOpen" :aria-expanded="isOpen">
+            <span class="accordion-title">{{ item.title }}</span>
+            <i icon-name="chevron-down" class="accordion-icon" :class="{ 'open': isOpen }"></i>
+        </button>
+        <div class="accordion-content" x-show="isOpen" x-collapse style="display: none;">
+            <div class="accordion-body">
+                {{ item.content | safe }}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
