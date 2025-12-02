@@ -6,9 +6,16 @@
     }
 
     function getNextLevelNeighbours(existing, remaining) {
-        const keys = Object.values(existing).map((n) => n.neighbors).flat();
+        // Use Set for O(1) lookup instead of indexOf O(n)
+        const keysSet = new Set();
+        Object.values(existing).forEach((n) => {
+            if (n.neighbors) {
+                n.neighbors.forEach(neighbor => keysSet.add(neighbor));
+            }
+        });
+        
         const n_remaining = Object.keys(remaining).reduce((acc, key) => {
-                if (keys.indexOf(key) != -1) {
+                if (keysSet.has(key)) {
                     if (!remaining[key].hide) {
                         existing[key] = remaining[key];
                     }
@@ -27,11 +34,15 @@
         let remaining = JSON.parse(JSON.stringify(graphData.nodes));
         let links = JSON.parse(JSON.stringify(graphData.links));
         let currentLink = decodeURI(window.location.pathname);
-        let currentNode = remaining[currentLink] || Object.values(remaining).find((v) => v.home);
+        let currentNode = remaining[currentLink] || Object.values(remaining).find((v) => v.home && !v.isFolder);
+        if (!currentNode) return null;
+        
         delete remaining[currentNode.url];
         if (!currentNode.home) {
-            let home = Object.values(remaining).find((v) => v.home);
-            delete remaining[home.url];
+            let home = Object.values(remaining).find((v) => v.home && !v.isFolder);
+            if (home) {
+                delete remaining[home.url];
+            }
         }
         currentNode.current = true;
         let existing = {};
@@ -43,11 +54,12 @@
         if (!currentNode.home) {
             nodes = nodes.filter(n => !n.home);
         }
-        let ids = nodes.map((n) => n.id);
+        // Use Set for O(1) lookup instead of indexOf O(n)
+        let idsSet = new Set(nodes.map((n) => n.id));
         return {
             nodes,
             links: links.filter(function (con) {
-                return ids.indexOf(con.target) > -1 && ids.indexOf(con.source) > -1;
+                return idsSet.has(con.target) && idsSet.has(con.source);
             }),
         }
     }
@@ -68,8 +80,13 @@
         height = el.offsetHeight;
         const highlightNodes = new Set();
         let hoverNode = null;
-        const color = getCssVar("--graph-main");
-        const mutedColor = getCssVar("--graph-muted");
+        const color = getCssVar("--graph-main") || getCssVar("--text-accent");
+        const mutedColor = getCssVar("--graph-muted") || "rgba(255, 255, 255, 0.3)";
+        const linkColor = getCssVar("--graph-link-color") || "rgba(255, 255, 255, 0.4)";
+        const nodeColor = getCssVar("--graph-node-color") || getCssVar("--text-accent");
+        const nodeHover = getCssVar("--graph-node-hover") || getCssVar("--text-accent-hover");
+        const nodeCurrent = getCssVar("--graph-node-current") || getCssVar("--text-accent");
+        
         let Graph = ForceGraph()
         (el)
             .graphData(graphData)
@@ -80,56 +97,120 @@
             .d3AlphaDecay(0.10)
             .width(width)
             .height(height)
-            .linkDirectionalArrowLength(2)
+            .linkDirectionalArrowLength(3)
             .linkDirectionalArrowRelPos(0.5)
             .autoPauseRedraw(false)
             .linkColor((link) => {
                 if (hoverNode == null) {
-                    return color;
+                    return linkColor;
                 }
                 if (link.source.id == hoverNode.id || link.target.id == hoverNode.id) {
                     return color;
                 } else {
                     return mutedColor;
                 }
-                
+            })
+            .linkWidth((link) => {
+                if (hoverNode == null) {
+                    return 1;
+                }
+                if (link.source.id == hoverNode.id || link.target.id == hoverNode.id) {
+                    return 2;
+                } else {
+                    return 0.5;
+                }
+            })
+            .nodeColor((node) => {
+                // Current node
+                if (node.current) {
+                    return nodeCurrent;
+                }
+                // Color nodes by group/folder
+                if (node.group && node.group !== "none") {
+                    // Generate color based on group name hash with better saturation
+                    let hash = 0;
+                    for (let i = 0; i < node.group.length; i++) {
+                        hash = node.group.charCodeAt(i) + ((hash << 5) - hash);
+                    }
+                    // Use HSL color space with better saturation and lightness for dark theme
+                    const hue = Math.abs(hash % 360);
+                    const saturation = 65;
+                    const lightness = 55;
+                    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                }
+                return nodeColor;
             })
             .nodeCanvasObject((node, ctx) => {
                 const numberOfNeighbours = (node.neighbors && node.neighbors.length) || 2;
                 const nodeR = Math.min(7, Math.max(numberOfNeighbours / 2, 2));
                 
-                ctx.beginPath();
-                ctx.arc(node.x, node.y, nodeR, 0, 2 * Math.PI, false);
-                if (hoverNode == null) {
-                    ctx.fillStyle = color;
-                } else {
+                // Get node color based on group
+                let nodeColorValue = nodeColor;
+                if (node.current) {
+                    nodeColorValue = nodeCurrent;
+                } else if (node.group && node.group !== "none") {
+                    let hash = 0;
+                    for (let i = 0; i < node.group.length; i++) {
+                        hash = node.group.charCodeAt(i) + ((hash << 5) - hash);
+                    }
+                    const hue = Math.abs(hash % 360);
+                    nodeColorValue = `hsl(${hue}, 65%, 55%)`;
+                }
+                
+                // Determine fill color based on hover state
+                let fillColor = nodeColorValue;
+                if (hoverNode != null) {
                     if (node == hoverNode || highlightNodes.has(node.url)) {
-                        ctx.fillStyle = color;
+                        fillColor = node == hoverNode ? nodeHover : nodeColorValue;
                     } else {
-                        ctx.fillStyle = mutedColor;
+                        fillColor = mutedColor;
                     }
                 }
-                 
-                ctx.fill();
                 
+                // Different styling for folder nodes
+                if (node.isFolder) {
+                    fillColor = mutedColor;
+                    // Draw folder as a square/rectangle
+                    const size = nodeR * 1.5;
+                    ctx.fillStyle = fillColor;
+                    ctx.fillRect(node.x - size/2, node.y - size/2, size, size);
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, nodeR, 0, 2 * Math.PI, false);
+                    ctx.fillStyle = fillColor;
+                    ctx.fill();
+                }
+                
+                // Highlight current node
                 if (node.current) {
                     ctx.beginPath();
-                    ctx.arc(node.x, node.y, nodeR + 1, 0, 2 * Math.PI, false);
-                    ctx.lineWidth = 0.5;
-                    ctx.strokeStyle = color;
+                    if (node.isFolder) {
+                        const size = nodeR * 1.5;
+                        ctx.rect(node.x - size/2 - 1.5, node.y - size/2 - 1.5, size + 3, size + 3);
+                    } else {
+                        ctx.arc(node.x, node.y, nodeR + 1.5, 0, 2 * Math.PI, false);
+                    }
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = nodeCurrent;
                     ctx.stroke();
                 }
 
-                const label = htmlDecode(node.title)
+                // Draw label
+                const label = htmlDecode(node.title);
                 const fontSize = 3.5;
                 ctx.font = `${fontSize}px Sans-Serif`;
-
+                ctx.fillStyle = getCssVar("--text-normal") || "#dcddde";
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
                 ctx.fillText(label, node.x, node.y + nodeR + 2);
             })
             .onNodeClick(node => {
-                window.location = node.url;
+                // If it's a folder node, navigate to first file in folder
+                if (node.isFolder && node.firstFileUrl) {
+                    window.location = node.firstFileUrl;
+                } else if (!node.isFolder) {
+                    window.location = node.url;
+                }
             })
             .onNodeHover(node => {
                 highlightNodes.clear();
@@ -161,10 +242,11 @@
             return null;
         }
         graphData = JSON.parse(JSON.stringify(graphData));
-        const hiddens = Object.values(graphData.nodes).filter((n) => n.hide).map((n) => n.id);
+        // Use Set for O(1) lookup
+        const hiddensSet = new Set(Object.values(graphData.nodes).filter((n) => n.hide).map((n) => n.id));
         const data = {
-            links: JSON.parse(JSON.stringify(graphData.links)).filter((l) => hiddens.indexOf(l.source) == -1 && hiddens.indexOf(l.target) == -1),
-            nodes: [...Object.values(graphData.nodes).filter((n) => !n.hide)]
+            links: JSON.parse(JSON.stringify(graphData.links)).filter((l) => !hiddensSet.has(l.source) && !hiddensSet.has(l.target)),
+            nodes: [...Object.values(graphData.nodes).filter((n) => !n.hide || n.isFolder)]
         }
         return data
     }

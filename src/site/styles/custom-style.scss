@@ -3,11 +3,864 @@ body {
       ADD YOUR CUSTOM STYLING HERE. (INSIDE THE body {...} section.)
       IT WILL TAKE PRECEDENCE OVER THE STYLING IN THE STYLE.CSS FILE.
    ***/
-    //  background-color: white;
-    //  .content {
-    //   font-size: 14px;
-    //  }
-    //  h1 {
-    //   color: black;
-    //  }
+
+    // Professional Typography: Inter font family
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    
+    // Pastel Sky Blue Color Palette
+    --color-neutral-50: #f0f9ff; // Very light sky blue
+    --color-neutral-100: #e0f2fe; // Light sky blue
+    --color-neutral-200: #bae6fd; // Pastel sky blue
+    --color-neutral-300: #7dd3fc; // Soft sky blue
+    --color-neutral-400: #38bdf8; // Medium sky blue
+    --color-neutral-500: #0ea5e9; // Sky blue
+    --color-neutral-600: #0284c7; // Deeper sky blue
+    --color-neutral-700: #0369a1; // Dark sky blue
+    --color-neutral-800: #075985; // Deep sky blue
+    --color-neutral-900: #0c4a6e; // Darkest sky blue
+    
+    // Pastel Sky Blue Accent colors for interactive elements
+    --color-accent-primary: #87CEEB; // Sky blue - main accent
+    --color-accent-hover: #5F9EA0; // Cadet blue - hover state
+    --color-accent-active: #4682B4; // Steel blue - active state
+
+    // Tối ưu content area cho việc đọc markdown - Professional Layout
+    .content {
+        max-width: 900px;
+        padding: 0 48px;
+        margin: 100px auto 80px; // Centered with top margin for fixed navbar
+        font-size: 16px;
+        line-height: 1.75;
+        letter-spacing: 0.01em;
+        color: var(--text-normal);
+        
+        // Content header styling
+        .content-header {
+            margin-bottom: 2.5em;
+            padding-bottom: 1.5em;
+            border-bottom: 1px solid var(--background-modifier-border);
+            
+            h1 {
+                margin-top: 0;
+                margin-bottom: 0.8em;
+            }
+            
+            .header-meta {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 16px;
+                margin-top: 1em;
+                
+                .header-tags {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 8px;
+                    
+                    .tag {
+                        background-color: var(--background-secondary);
+                        color: var(--text-normal);
+                        padding: 6px 14px;
+                        border-radius: 16px;
+                        font-size: 0.8125rem;
+                        font-weight: 500;
+                        text-decoration: none;
+                        transition: all 0.2s ease;
+                        border: 1px solid var(--background-modifier-border);
+                        font-family: 'Inter', sans-serif;
+                        
+                        &:hover {
+                            background-color: var(--background-modifier-hover);
+                            color: var(--color-accent-primary);
+                            border-color: var(--color-accent-primary);
+                            transform: translateY(-2px);
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                        }
+                    }
+                }
+                
+                .timestamps {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 20px;
+                    color: var(--text-muted);
+                    font-size: 0.875rem;
+                    font-family: 'Inter', sans-serif;
+                    
+                    .timestamp-item {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        padding: 4px 0;
+                        
+                        i {
+                            width: 16px;
+                            height: 16px;
+                            color: var(--text-muted);
+                            flex-shrink: 0;
+                        }
+                        
+                        .human-date {
+                            color: var(--text-muted);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Content body styling
+        .content-body {
+            margin-top: 2em;
+        }
+        
+        // Typography improvements - Professional Inter font
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 1.8em;
+            margin-bottom: 0.6em;
+            font-weight: 600;
+            line-height: 1.3;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.02em;
+            color: var(--text-normal);
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            border-bottom: 2px solid var(--background-modifier-border);
+            padding-bottom: 0.4em;
+            margin-top: 0;
+        }
+        
+        h2 {
+            font-size: 1.875em;
+            font-weight: 600;
+            border-bottom: 1px solid var(--background-modifier-border);
+            padding-bottom: 0.3em;
+        }
+        
+        h3 {
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+        
+        h4 {
+            font-size: 1.25em;
+            font-weight: 600;
+        }
+        
+        h5, h6 {
+            font-size: 1.125em;
+            font-weight: 600;
+        }
+        
+        // Paragraph spacing
+        p {
+            margin-top: 0.8em;
+            margin-bottom: 0.8em;
+        }
+        
+        // List styling
+        ul, ol {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+        
+        li {
+            margin: 0.4em 0;
+        }
+        
+        // Code blocks - Pastel sky blue theme
+        pre {
+            background-color: rgba(135, 206, 235, 0.08); // Light sky blue tint
+            border-radius: 6px;
+            padding: 1em;
+            overflow-x: auto;
+            margin: 1.5em 0;
+            border: 1px solid rgba(135, 206, 235, 0.2);
+            
+            code {
+                background-color: transparent;
+                padding: 0;
+                color: var(--text-normal);
+            }
+        }
+        
+        code {
+            background-color: rgba(135, 206, 235, 0.1); // Light sky blue tint
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+            color: var(--color-accent-primary);
+            border: 1px solid rgba(135, 206, 235, 0.2);
+        }
+        
+        // Blockquotes - Pastel sky blue theme
+        blockquote {
+            border-left: 4px solid var(--color-accent-primary);
+            padding-left: 1em;
+            margin: 1.5em 0;
+            color: var(--text-muted);
+            font-style: italic;
+            background-color: rgba(135, 206, 235, 0.05); // Light sky blue tint
+        }
+        
+        // Tables
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5em 0;
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 6px;
+            overflow: hidden;
+            
+            th, td {
+                padding: 0.6em 1em;
+                border: 1px solid var(--background-modifier-border);
+            }
+            
+            th {
+                background-color: var(--background-secondary);
+                font-weight: 600;
+                color: var(--text-normal);
+            }
+            
+            td {
+                color: var(--text-normal);
+            }
+            
+            tr:hover {
+                background-color: var(--background-modifier-hover);
+            }
+        }
+        
+        // Links - Professional styling with clear hover states
+        a {
+            color: var(--color-accent-primary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            
+            &:hover {
+                color: var(--color-accent-hover);
+                text-decoration: underline;
+                text-underline-offset: 2px;
+            }
+            
+            &:active {
+                color: var(--color-accent-active);
+            }
+        }
+        
+        // Internal links
+        a.internal-link {
+            color: var(--color-accent-primary);
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s ease;
+            
+            &:hover {
+                color: var(--color-accent-hover);
+                border-bottom-color: var(--color-accent-hover);
+            }
+        }
+        
+        // External links
+        a.external-link {
+            color: var(--color-accent-primary);
+            
+            &:hover {
+                color: var(--color-accent-hover);
+            }
+        }
+        
+        // Horizontal rule
+        hr {
+            border: none;
+            border-top: 1px solid var(--background-modifier-border);
+            margin: 2em 0;
+        }
+    }
+
+    // Fixed Professional Navbar
+    .navbar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        background-color: var(--background-primary);
+        border-bottom: 1px solid var(--background-modifier-border);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        z-index: 100;
+        padding: 0 var(--file-margins);
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        backdrop-filter: blur(10px);
+        
+        .navbar-inner {
+            h1 {
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: var(--text-normal);
+                margin: 0;
+                letter-spacing: -0.02em;
+                font-family: 'Inter', sans-serif;
+                
+                a {
+                    color: inherit;
+                    text-decoration: none;
+                    transition: color 0.2s ease;
+                    
+                    &:hover {
+                        color: var(--color-accent-primary);
+                    }
+                }
+            }
+        }
+        
+        .search-button {
+            background-color: var(--background-secondary);
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 8px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-family: 'Inter', sans-serif;
+            
+            &:hover {
+                background-color: var(--background-modifier-hover);
+                border-color: var(--color-accent-primary);
+                color: var(--text-normal);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            
+            .search-icon {
+                display: flex;
+                align-items: center;
+                
+                i {
+                    width: 16px;
+                    height: 16px;
+                }
+            }
+            
+            .search-keys {
+                background-color: var(--background-modifier-border);
+                border-radius: 4px;
+                padding: 2px 6px;
+                font-size: 0.7rem;
+                font-weight: 500;
+            }
+        }
+    }
+    
+    .empty-navbar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        z-index: 100;
+        padding: 16px var(--file-margins);
+    }
+
+    // Tối ưu sidebar - consolidated text color rules
+    .sidebar {
+        top: 80px; // Adjusted for fixed navbar
+        right: 20px;
+        max-width: 300px;
+        color: var(--text-normal);
+        
+        // Base text color for all elements except special cases
+        p, label, span:not(#depth-display), div:not(#depth-display):not(.graph):not(.toc):not(.backlinks):not(.filetree-in-sidebar),
+        li, a:not(.backlink) {
+            color: var(--text-normal);
+        }
+        
+        .sidebar-container {
+            gap: 16px;
+        }
+        
+        // Keep depth-display white (it has accent background)
+        #depth-display {
+            color: white !important;
+        }
+        
+        // Backlinks always use accent color
+        .backlink {
+            color: var(--color-accent-primary);
+        }
+        
+        // Filetree in sidebar
+        .filetree-in-sidebar {
+            .filetree-title-container {
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid var(--background-modifier-border);
+            }
+            
+            .filetree-title {
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: var(--text-normal);
+                letter-spacing: 0.2px;
+                text-transform: uppercase;
+            }
+            
+            .filetree-container {
+                font-size: 0.8125rem;
+                max-height: 400px;
+                overflow-y: auto;
+                overflow-x: hidden;
+                padding-right: 4px;
+                
+                // Custom scrollbar
+                &::-webkit-scrollbar {
+                    width: 5px;
+                }
+                
+                &::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                
+                &::-webkit-scrollbar-thumb {
+                    background: var(--background-modifier-border);
+                    border-radius: 3px;
+                    
+                    &:hover {
+                        background: var(--background-modifier-border-hover);
+                    }
+                }
+                
+                // Shared styles for notelink and foldername-wrapper
+                .notelink, .foldername-wrapper {
+                    padding: 8px 10px;
+                    border-radius: 8px;
+                    transition: all 0.2s ease;
+                    cursor: pointer;
+                    margin: 2px 0;
+                    color: var(--text-normal);
+                    
+                    i {
+                        color: var(--text-muted);
+                        font-size: 0.875rem;
+                        transition: color 0.2s ease;
+                    }
+                    
+                    &:hover {
+                        background-color: var(--background-modifier-hover);
+                        transform: translateX(2px);
+                    }
+                }
+                
+                .notelink {
+                    padding: 10px 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    
+                    a {
+                        color: var(--text-normal);
+                        text-decoration: none;
+                        transition: color 0.2s ease;
+                        font-size: 0.875rem;
+                        font-weight: 400;
+                        font-family: 'Inter', sans-serif;
+                    }
+                    
+                    // Hover state: Clear visual feedback
+                    &:hover {
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                        
+                        a {
+                            color: var(--color-accent-primary);
+                            font-weight: 500;
+                        }
+                        
+                        i {
+                            color: var(--color-accent-primary);
+                        }
+                    }
+                    
+                    // Selected state: Clear indication
+                    &.active-note {
+                        background-color: var(--background-modifier-active-hover);
+                        border-left: 3px solid var(--color-accent-primary);
+                        padding-left: 9px;
+                        box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15);
+                        
+                        a {
+                            color: var(--color-accent-primary);
+                            font-weight: 600;
+                        }
+                        
+                        i {
+                            color: var(--color-accent-primary);
+                        }
+                    }
+                }
+                
+                .foldername-wrapper {
+                    i {
+                        margin-right: 6px;
+                    }
+                }
+                
+                .foldername {
+                    font-weight: 500;
+                    color: var(--text-normal);
+                    font-size: 0.875rem;
+                    font-family: 'Inter', sans-serif;
+                }
+                
+                .inner-folder {
+                    margin-left: 10px;
+                    border-left: 1px solid var(--background-modifier-border);
+                    padding-left: 6px;
+                }
+            }
+        }
+        
+        // Shared card styling for TOC, Graph, and Backlinks
+        .toc, .graph, .backlinks, .filetree-in-sidebar {
+            background-color: var(--background-secondary);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            border: 1px solid var(--background-modifier-border);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+            color: var(--text-normal);
+        }
+        
+        // TOC styling
+        .toc {
+            .toc-title-container {
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid var(--background-modifier-border);
+            }
+            
+            .toc-title {
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: var(--text-normal);
+                letter-spacing: 0.3px;
+                text-transform: uppercase;
+                font-family: 'Inter', sans-serif;
+            }
+            
+            .toc-container {
+                font-size: 0.875rem;
+                line-height: 1.7;
+                color: var(--text-normal);
+                font-family: 'Inter', sans-serif;
+                
+                ul {
+                    margin: 0.5em 0;
+                }
+                
+                li {
+                    padding: 6px 0;
+                    transition: all 0.2s ease;
+                    color: var(--text-normal);
+                    
+                    &:hover {
+                        transform: translateX(4px);
+                        
+                        a {
+                            color: var(--color-accent-primary);
+                        }
+                    }
+                    
+                    &::before {
+                        color: var(--text-muted);
+                        font-size: 0.75rem;
+                    }
+                    
+                    a {
+                        color: var(--text-normal);
+                        transition: color 0.2s ease;
+                        text-decoration: none;
+                        font-weight: 400;
+                        
+                        &:hover {
+                            color: var(--color-accent-primary);
+                            font-weight: 500;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Graph styling
+        .graph {
+            .graph-title-container {
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid var(--background-modifier-border);
+            }
+            
+            .graph-title {
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: var(--text-normal);
+                letter-spacing: 0.2px;
+                text-transform: uppercase;
+            }
+            
+            #link-graph {
+                border-radius: 6px;
+                margin-bottom: 8px;
+            }
+            
+            #graph-controls {
+                color: var(--text-normal);
+                font-size: 0.8125rem;
+                
+                label, span, i {
+                    color: var(--text-normal);
+                    font-size: 0.8125rem;
+                }
+                
+                i {
+                    font-size: 0.875rem;
+                }
+                
+                // Depth display có nền accent nên giữ màu trắng
+                #depth-display {
+                    color: white !important;
+                    width: 1.2rem;
+                    height: 1.2rem;
+                    font-size: 0.75rem;
+                }
+            }
+        }
+        
+        // Backlinks styling - Minimalist
+        .backlinks {
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            
+            .backlink-title {
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: var(--text-normal);
+                margin-bottom: 12px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid var(--background-modifier-border);
+                letter-spacing: 0.3px;
+                text-transform: uppercase;
+                font-family: 'Inter', sans-serif;
+            }
+            
+            .backlink-list {
+                color: var(--text-normal);
+            }
+            
+            .backlink-card {
+                padding: 10px 12px;
+                border-radius: 8px;
+                margin-bottom: 6px;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: var(--text-normal);
+                cursor: pointer;
+                
+                i {
+                    color: var(--text-muted);
+                    font-size: 0.875rem;
+                    transition: color 0.2s ease;
+                }
+                
+                // Hover state: Clear feedback
+                &:hover {
+                    background-color: var(--background-modifier-hover);
+                    transform: translateX(4px);
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                    
+                    i {
+                        color: var(--color-accent-primary);
+                    }
+                }
+                
+                .backlink {
+                    color: var(--color-accent-primary);
+                    text-decoration: none;
+                    transition: color 0.2s ease;
+                    font-size: 0.875rem;
+                    font-weight: 400;
+                    font-family: 'Inter', sans-serif;
+                    
+                    &:hover {
+                        color: var(--color-accent-hover);
+                        font-weight: 500;
+                        text-decoration: underline;
+                    }
+                }
+                
+                .no-backlinks-message {
+                    color: var(--text-muted);
+                    font-size: 0.8125rem;
+                    font-family: 'Inter', sans-serif;
+                }
+            }
+        }
+    }
+
+    // Tối ưu filetree sidebar (left) - Grid Layout ready
+    .filetree-sidebar {
+        width: 280px;
+        padding: 24px 20px;
+        background-color: var(--background-secondary);
+        border-right: 1px solid var(--background-modifier-border);
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+        top: 64px; // Adjusted for fixed navbar
+        color: var(--text-normal);
+        
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--background-modifier-border);
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.02em;
+            color: var(--text-normal);
+        }
+        
+        // Base text color for all elements
+        span, div, p, label, li, a {
+            color: var(--text-normal);
+        }
+        
+        // Reuse shared notelink styles
+        .notelink {
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin: 2px 0;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            
+            a {
+                color: var(--text-normal);
+                text-decoration: none;
+                transition: color 0.2s ease;
+                font-size: 0.875rem;
+                font-weight: 400;
+                font-family: 'Inter', sans-serif;
+            }
+            
+            i {
+                color: var(--text-muted);
+                font-size: 0.875rem;
+                transition: color 0.2s ease;
+            }
+            
+            // Hover state
+            &:hover {
+                background-color: var(--background-modifier-hover);
+                transform: translateX(2px);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                
+                a {
+                    color: var(--color-accent-primary);
+                    font-weight: 500;
+                }
+                
+                i {
+                    color: var(--color-accent-primary);
+                }
+            }
+            
+            // Selected state
+            &.active-note {
+                background-color: var(--background-modifier-active-hover);
+                border-left: 3px solid var(--color-accent-primary);
+                padding-left: 9px;
+                box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15);
+                
+                a {
+                    color: var(--color-accent-primary);
+                    font-weight: 600;
+                }
+                
+                i {
+                    color: var(--color-accent-primary);
+                }
+            }
+        }
+        
+        .foldername-wrapper {
+            padding: 8px 10px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            margin: 2px 0;
+            
+            &:hover {
+                background-color: var(--background-modifier-hover);
+            }
+            
+            .foldername {
+                font-weight: 500;
+                font-size: 0.875rem;
+                font-family: 'Inter', sans-serif;
+            }
+            
+            i {
+                color: var(--text-muted);
+                font-size: 0.875rem;
+                margin-right: 6px;
+                transition: color 0.2s ease;
+            }
+        }
+        
+        .foldername {
+            font-weight: 500;
+            padding: 0;
+            font-size: 0.875rem;
+        }
+        
+        .inner-folder {
+            margin-left: 16px;
+            border-left: 1px solid var(--background-modifier-border);
+            padding-left: 10px;
+        }
+    }
+
+    // Responsive improvements
+    @media (max-width: 1400px) {
+        .content {
+            max-width: 100%;
+            padding: 0 20px;
+        }
+        
+        .sidebar {
+            position: relative;
+            max-width: 100%;
+            margin-top: 30px;
+        }
+    }
+    
+    @media (max-width: 800px) {
+        .content {
+            font-size: 15px;
+            padding: 0 15px;
+            margin-top: 20px;
+        }
+    }
 }

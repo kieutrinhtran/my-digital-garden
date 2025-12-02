@@ -1,4 +1,8 @@
 {
     "tags": "note",
-    "templateEngineOverride": "md"
+    "templateEngineOverride": "md",
+    "dgShowLocalGraph": true,
+    "dgShowToc": true,
+    "dgShowBacklinks": true,
+    "dgShowFileTree": true
 }

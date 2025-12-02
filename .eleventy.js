@@ -15,59 +15,106 @@ const {
 } = require("./src/helpers/userSetup");
 
 const Image = require("@11ty/eleventy-img");
+
+// Image transformation cache to avoid reprocessing same images
+const imageCache = new Map();
+
 function transformImage(src, cls, alt, sizes, widths = ["500", "700", "auto"]) {
-  let options = {
+  // Check cache first
+  const cacheKey = `${src}-${widths.join(",")}`;
+  if (imageCache.has(cacheKey)) {
+    return imageCache.get(cacheKey);
+  }
+
+  const options = {
     widths: widths,
     formats: ["webp", "jpeg"],
     outputDir: "./dist/img/optimized",
     urlPath: "/img/optimized",
+    // Cache images to improve performance
+    cacheOptions: {
+      duration: "30d",
+      directory: ".cache",
+      removeUrlQueryParams: false,
+    },
   };
 
-  // generate images, while this is async we don’t wait
-  Image(src, options);
-  let metadata = Image.statsSync(src, options);
-  return metadata;
+  try {
+    // Use sync method for build-time optimization
+    const metadata = Image.statsSync(src, options);
+    imageCache.set(cacheKey, metadata);
+    return metadata;
+  } catch (error) {
+    // Return null on error to prevent build failures
+    console.warn(`Image transformation failed for ${src}:`, error.message);
+    return null;
+  }
 }
 
 function getAnchorLink(filePath, linkTitle) {
   const {attributes, innerHTML} = getAnchorAttributes(filePath, linkTitle);
-  return `<a ${Object.keys(attributes).map(key => `${key}="${attributes[key]}"`).join(" ")}>${innerHTML}</a>`;
+  const attrsString = Object.entries(attributes)
+    .map(([key, value]) => `${key}="${String(value).replace(/"/g, '&quot;')}"`)
+    .join(" ");
+  return `<a ${attrsString}>${innerHTML}</a>`;
 }
 
+// Cache for file metadata to avoid repeated file reads
+const fileMetadataCache = new Map();
+
 function getAnchorAttributes(filePath, linkTitle) {
-  let fileName = filePath.replaceAll("&amp;", "&");
+  const cleanPath = filePath.replaceAll("&amp;", "&");
+  let fileName = cleanPath;
   let header = "";
   let headerLinkPath = "";
-  if (filePath.includes("#")) {
-    [fileName, header] = filePath.split("#");
+  if (cleanPath.includes("#")) {
+    const parts = cleanPath.split("#");
+    fileName = parts[0];
+    header = parts.slice(1).join("#");
     headerLinkPath = `#${headerToId(header)}`;
   }
 
   let noteIcon = process.env.NOTE_ICON_DEFAULT;
-  const title = linkTitle ? linkTitle : fileName;
+  const title = linkTitle || fileName;
   let permalink = `/notes/${slugify(filePath)}`;
   let deadLink = false;
-  try {
-    const startPath = "./src/site/notes/";
-    const fullPath = fileName.endsWith(".md")
-      ? `${startPath}${fileName}`
-      : `${startPath}${fileName}.md`;
-    const file = fs.readFileSync(fullPath, "utf8");
-    const frontMatter = matter(file);
-    if (frontMatter.data.permalink) {
-      permalink = frontMatter.data.permalink;
+  
+  // Check cache first
+  if (fileMetadataCache.has(fileName)) {
+    const cached = fileMetadataCache.get(fileName);
+    if (cached.deadLink) {
+      deadLink = true;
+    } else {
+      permalink = cached.permalink;
+      noteIcon = cached.noteIcon;
     }
-    if (
-      frontMatter.data.tags &&
-      frontMatter.data.tags.indexOf("gardenEntry") != -1
-    ) {
-      permalink = "/";
+  } else {
+    try {
+      const startPath = "./src/site/notes/";
+      const fullPath = fileName.endsWith(".md")
+        ? `${startPath}${fileName}`
+        : `${startPath}${fileName}.md`;
+      const file = fs.readFileSync(fullPath, "utf8");
+      const frontMatter = matter(file);
+      if (frontMatter.data.permalink) {
+        permalink = frontMatter.data.permalink;
+      }
+      if (
+        frontMatter.data.tags &&
+        Array.isArray(frontMatter.data.tags) &&
+        frontMatter.data.tags.indexOf("gardenEntry") !== -1
+      ) {
+        permalink = "/";
+      }
+      if (frontMatter.data.noteIcon) {
+        noteIcon = frontMatter.data.noteIcon;
+      }
+      // Cache the result
+      fileMetadataCache.set(fileName, { permalink, noteIcon, deadLink: false });
+    } catch {
+      deadLink = true;
+      fileMetadataCache.set(fileName, { permalink, noteIcon, deadLink: true });
     }
-    if (frontMatter.data.noteIcon) {
-      noteIcon = frontMatter.data.noteIcon;
-    }
-  } catch {
-    deadLink = true;
   }
 
   if (deadLink) {
@@ -91,7 +138,10 @@ function getAnchorAttributes(filePath, linkTitle) {
   }
 }
 
+// Pre-compiled regex patterns for better performance
 const tagRegex = /(^|\s|\>)(#[^\s!@#$%^&*()=+\.,\[{\]};:'"?><]+)(?!([^<]*>))/g;
+const wikiLinkRegex = /\[\[(.*?\|.*?)\]\]/g;
+const dataviewRegex = /\(\S+\:\:(.*)\)/g;
 
 module.exports = function (eleventyConfig) {
   eleventyConfig.setLiquidOptions({
@@ -275,18 +325,15 @@ module.exports = function (eleventyConfig) {
   });
 
   eleventyConfig.addFilter("link", function (str) {
-    return (
-      str &&
-      str.replace(/\[\[(.*?\|.*?)\]\]/g, function (match, p1) {
-        //Check if it is an embedded excalidraw drawing or mathjax javascript
-        if (p1.indexOf("],[") > -1 || p1.indexOf('"$"') > -1) {
-          return match;
-        }
-        const [fileLink, linkTitle] = p1.split("|");
-
-        return getAnchorLink(fileLink, linkTitle);
-      })
-    );
+    if (!str) return str;
+    return str.replace(wikiLinkRegex, function (match, p1) {
+      //Check if it is an embedded excalidraw drawing or mathjax javascript
+      if (p1.indexOf("],[") > -1 || p1.indexOf('"$"') > -1) {
+        return match;
+      }
+      const [fileLink, linkTitle] = p1.split("|");
+      return getAnchorLink(fileLink, linkTitle);
+    });
   });
 
   eleventyConfig.addFilter("taggify", function (str) {
@@ -316,12 +363,10 @@ module.exports = function (eleventyConfig) {
   });
 
   eleventyConfig.addFilter("hideDataview", function (str) {
-    return (
-      str &&
-      str.replace(/\(\S+\:\:(.*)\)/g, function (_, value) {
-        return value.trim();
-      })
-    );
+    if (!str) return str;
+    return str.replace(dataviewRegex, function (_, value) {
+      return value.trim();
+    });
   });
 
   eleventyConfig.addTransform("dataview-js-links", function (str) {
@@ -448,31 +493,31 @@ module.exports = function (eleventyConfig) {
     if(process.env.USE_FULL_RESOLUTION_IMAGES === "true"){
       return str;
     }
+    if (!str) return str;
+    
     const parsed = parse(str);
-    for (const imageTag of parsed.querySelectorAll(".cm-s-obsidian img")) {
+    const images = parsed.querySelectorAll(".cm-s-obsidian img");
+    
+    for (const imageTag of images) {
       const src = imageTag.getAttribute("src");
       if (src && src.startsWith("/") && !src.endsWith(".svg")) {
         const cls = imageTag.classList.value;
-        const alt = imageTag.getAttribute("alt");
+        const alt = imageTag.getAttribute("alt") || "";
         const width = imageTag.getAttribute("width") || '';
 
-        try {
-          const meta = transformImage(
-            "./src/site" + decodeURI(imageTag.getAttribute("src")),
-            cls.toString(),
-            alt,
-            ["(max-width: 480px)", "(max-width: 1024px)"]
-          );
+        const meta = transformImage(
+          "./src/site" + decodeURI(src),
+          cls.toString(),
+          alt,
+          ["(max-width: 480px)", "(max-width: 1024px)"]
+        );
 
-          if (meta) {
-            fillPictureSourceSets(src, cls, alt, meta, width, imageTag);
-          }
-        } catch {
-          // Make it fault tolarent.
+        if (meta) {
+          fillPictureSourceSets(src, cls, alt, meta, width, imageTag);
         }
       }
     }
-    return str && parsed.innerHTML;
+    return parsed.innerHTML;
   });
 
   eleventyConfig.addTransform("table", function (str) {
@@ -507,16 +552,25 @@ module.exports = function (eleventyConfig) {
       outputPath &&
       outputPath.endsWith(".html")
     ) {
-      return htmlMinifier.minify(content, {
-        useShortDoctype: true,
-        removeComments: true,
-        collapseWhitespace: true,
-        conservativeCollapse: true,
-        preserveLineBreaks: true,
-        minifyCSS: true,
-        minifyJS: true,
-        keepClosingSlash: true,
-      });
+      try {
+        return htmlMinifier.minify(content, {
+          useShortDoctype: true,
+          removeComments: true,
+          collapseWhitespace: true,
+          conservativeCollapse: true,
+          preserveLineBreaks: false, // Changed to false for better compression
+          minifyCSS: true,
+          minifyJS: true,
+          keepClosingSlash: true,
+          removeRedundantAttributes: true,
+          removeScriptTypeAttributes: true,
+          removeStyleLinkTypeAttributes: true,
+          removeEmptyAttributes: true,
+        });
+      } catch (error) {
+        console.warn(`HTML minification failed for ${outputPath}:`, error.message);
+        return content;
+      }
     }
     return content;
   });
