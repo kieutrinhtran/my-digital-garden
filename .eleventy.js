@@ -2,7 +2,7 @@ const slugify = require("@sindresorhus/slugify");
 const markdownIt = require("markdown-it");
 const fs = require("fs");
 const matter = require("gray-matter");
-const faviconsPlugin = require("eleventy-plugin-gen-favicons");
+// const faviconsPlugin = require("eleventy-plugin-gen-favicons"); // Disabled to avoid Windows file locking issues
 const tocPlugin = require("eleventy-plugin-nesting-toc");
 const { parse } = require("node-html-parser");
 const htmlMinifier = require("html-minifier-terser");
@@ -578,7 +578,14 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/site/img");
   eleventyConfig.addPassthroughCopy("src/site/scripts");
   eleventyConfig.addPassthroughCopy("src/site/styles/_theme.*.css");
-  eleventyConfig.addPlugin(faviconsPlugin, { outputDir: "dist" });
+  // Passthrough copy favicon.svg and other favicon files
+  // Disabled favicons plugin to avoid Windows file locking issues (EBUSY error)
+  // Favicons are handled via static links in pageheader.njk
+  eleventyConfig.addPassthroughCopy("src/site/favicon.svg");
+  
+  // Note: Favicons plugin disabled due to Windows file locking issues
+  // Favicon files should be manually generated and placed in dist/ folder
+  // or use static links as configured in pageheader.njk
   eleventyConfig.addPlugin(tocPlugin, {
     ul: true,
     tags: ["h1", "h2", "h3", "h4", "h5", "h6"],

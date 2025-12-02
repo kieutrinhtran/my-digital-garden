@@ -9,31 +9,90 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     
-    // Glassmorphism: Vibrant Background Gradient
+    // ============================================
+    // DARK FUTURISTIC BACKGROUND WITH GLASSMORPHISM
+    // ============================================
+    
+    // Layer 1: Base dark gradient
     background: linear-gradient(135deg, 
-        #667eea 0%,      // Vibrant blue-purple
-        #764ba2 25%,    // Purple
-        #f093fb 50%,    // Pink
-        #4facfe 75%,    // Bright blue
-        #00f2fe 100%    // Cyan
+        #000000 0%,      // Deep black (top-left)
+        #0A0F1A 100%     // Dark blue-tinted (bottom-right)
     );
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
     min-height: 100vh;
     position: relative;
     
-    // Glassmorphism: Light source reflection overlay
+    // Layer 2: Grain texture overlay (subtle noise)
     &::before {
         content: '';
         position: fixed;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 255, 255, 0.03) 2px, rgba(255, 255, 255, 0.03) 4px),
+            repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 255, 255, 0.03) 2px, rgba(255, 255, 255, 0.03) 4px);
+        background-size: 100px 100px;
         pointer-events: none;
         z-index: 0;
-        animation: lightMove 20s ease-in-out infinite;
+        opacity: 0.4; // 3-5% effective opacity
+    }
+    
+    // Layer 3: Radial glows for ambient effects
+    &::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            // Glow 1: Cyan top-right
+            radial-gradient(circle at 85% 15%, rgba(0, 229, 255, 0.08) 0%, transparent 50%),
+            // Glow 2: Electric Blue bottom-left
+            radial-gradient(circle at 15% 85%, rgba(58, 180, 255, 0.06) 0%, transparent 50%),
+            // Glow 3: Purple/Indigo for depth
+            radial-gradient(circle at 50% 50%, rgba(111, 74, 255, 0.04) 0%, transparent 60%);
+        background-size: 
+            700px 700px,
+            500px 500px,
+            800px 800px;
+        pointer-events: none;
+        z-index: 0;
+        animation: glowDrift 30s ease-in-out infinite;
+    }
+    
+    // Layer 4: Mesh/Aurora gradient (optional, very subtle)
+    // Using pseudo-element on html or creating a wrapper
+    // For now, we'll add it as a background layer
+    background-image: 
+        // Aurora mesh gradient
+        linear-gradient(135deg, 
+            rgba(0, 229, 255, 0.05) 0%,
+            rgba(58, 180, 255, 0.03) 25%,
+            rgba(111, 74, 255, 0.04) 50%,
+            rgba(58, 180, 255, 0.03) 75%,
+            rgba(0, 229, 255, 0.05) 100%
+        ),
+        // Base gradient
+        linear-gradient(135deg, #000000 0%, #0A0F1A 100%);
+    background-size: 
+        200% 200%,
+        100% 100%;
+    background-position: 
+        0% 50%,
+        0% 0%;
+    animation: auroraMesh 35s ease-in-out infinite;
+    
+    // Respect prefers-reduced-motion
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+        background-size: 100% 100%;
+        background-position: 0% 0%;
+        
+        &::after {
+            animation: none;
+        }
     }
     
     // Glassmorphism Color Palette - Translucent colors
@@ -53,16 +112,246 @@ body {
     --color-accent-hover: rgba(95, 158, 160, 0.95); // Cadet blue - hover state
     --color-accent-active: rgba(70, 130, 180, 1); // Steel blue - active state
     
-    // Glassmorphism animations
-    @keyframes gradientShift {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
+    // Icon System Variables
+    --icon-stroke-default: #E8F1F8; // White
+    --icon-stroke-light: #C7F8FF; // Light Cyan
+    --icon-stroke-hover: #3AB4FF; // Electric Blue
+    --icon-stroke-active: #00E5FF; // Cyan
+    --icon-stroke-width: 1.75px; // Monoline style (1.5-2px)
+    --icon-glow-hover: rgba(0, 229, 255, 0.4); // Cyan glow
+    --icon-glow-shadow: 0 2px 8px rgba(0, 229, 255, 0.2); // Soft drop-shadow
+    
+    // Background animations - slow and subtle
+    @keyframes glowDrift {
+        0%, 100% { 
+            transform: translate(0, 0);
+            opacity: 1;
+        }
+        50% { 
+            transform: translate(2%, 2%);
+            opacity: 0.9;
+        }
     }
     
-    @keyframes lightMove {
-        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-        50% { transform: translate(20%, 20%) rotate(180deg); }
+    @keyframes auroraMesh {
+        0% { 
+            background-position: 0% 50%, 0% 0%;
+        }
+        50% { 
+            background-position: 100% 50%, 0% 0%;
+        }
+        100% { 
+            background-position: 0% 50%, 0% 0%;
+        }
+    }
+    
+    // ============================================
+    // ICON SYSTEM - MODERN MINIMALISTIC STYLE
+    // ============================================
+    
+    // Base icon styling - Lucide Icons (monoline, geometric)
+    svg.svg-icon,
+    i[icon-name] svg,
+    .svg-icon {
+        // Monoline style with consistent stroke
+        stroke-width: var(--icon-stroke-width);
+        stroke: var(--icon-stroke-default);
+        fill: none;
+        // Rounded corners for geometric look
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        // Slightly muted to prevent glare on dark background
+        opacity: 0.9;
+        // Smooth transitions
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        // Crisp rendering
+        shape-rendering: geometricPrecision;
+    }
+    
+    // Icon sizing rules
+    // Header icons: 18-22px
+    .navbar svg.svg-icon,
+    .navbar i[icon-name] svg,
+    header svg.svg-icon,
+    header i[icon-name] svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    // Sidebar icons: 20-24px
+    .sidebar svg.svg-icon,
+    .sidebar i[icon-name] svg,
+    aside svg.svg-icon,
+    aside i[icon-name] svg {
+        width: 22px;
+        height: 22px;
+    }
+    
+    // Action icons (edit/share/copy): 16-20px
+    button svg.svg-icon,
+    button i[icon-name] svg,
+    .clickable-icon svg.svg-icon,
+    .clickable-icon i[icon-name] svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    // Knowledge graph panel: 14-18px
+    .graph svg.svg-icon,
+    .graph i[icon-name] svg,
+    #link-graph svg,
+    #full-graph-container svg {
+        width: 16px;
+        height: 16px;
+        stroke-width: 1.5px;
+    }
+    
+    // Search box icon
+    .search-button svg.svg-icon,
+    .search-button i[icon-name] svg,
+    .search-icon svg.svg-icon,
+    .search-icon i[icon-name] svg {
+        width: 18px;
+        height: 18px;
+        stroke: var(--icon-stroke-light);
+    }
+    
+    // Filetree icons
+    .filetree-sidebar svg.svg-icon,
+    .filetree-sidebar i[icon-name] svg,
+    .filetree-in-sidebar svg.svg-icon,
+    .filetree-in-sidebar i[icon-name] svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    // Chevron icons (folders)
+    i[icon-name="chevron-down"] svg,
+    i[icon-name="chevron-right"] svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    // Hover state - subtle glow and scale
+    svg.svg-icon:hover,
+    i[icon-name]:hover svg,
+    button:hover svg.svg-icon,
+    .clickable-icon:hover svg.svg-icon {
+        stroke: var(--icon-stroke-hover);
+        opacity: 1;
+        transform: scale(1.04);
+        filter: drop-shadow(var(--icon-glow-shadow));
+        // Outer glow effect
+        filter: drop-shadow(0 0 4px var(--icon-glow-hover));
+    }
+    
+    // Active/clicked state
+    svg.svg-icon:active,
+    i[icon-name]:active svg,
+    button:active svg.svg-icon,
+    .clickable-icon:active svg.svg-icon {
+        stroke: var(--icon-stroke-active);
+        transform: scale(0.98);
+        filter: drop-shadow(0 1px 2px rgba(0, 229, 255, 0.3));
+    }
+    
+    // Focus state for accessibility
+    svg.svg-icon:focus-visible,
+    i[icon-name]:focus-visible svg {
+        outline: 2px solid var(--icon-stroke-active);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+    
+    // Icons inside glass containers - ensure crisp rendering
+    .content svg.svg-icon,
+    .content i[icon-name] svg,
+    [class*="glass"] svg.svg-icon,
+    [class*="glass"] i[icon-name] svg {
+        // Enhanced crispness for glass backgrounds
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    // Special icon areas
+    
+    // Knowledge Graph Panel icons
+    .graph {
+        // Folder nodes
+        i[icon-name="folder"] svg,
+        i[icon-name="folder-outline"] svg {
+            stroke: rgba(58, 180, 255, 0.8);
+        }
+        
+        // Note/document nodes
+        i[icon-name="file-text"] svg,
+        i[icon-name="document-text"] svg,
+        i[icon-name="sticky-note"] svg {
+            stroke: rgba(0, 229, 255, 0.8);
+        }
+    }
+    
+    // Search box icon - soft cyan
+    .search-button i[icon-name="search"] svg,
+    .search-icon i[icon-name="search"] svg {
+        stroke: var(--icon-stroke-light);
+    }
+    
+    // Tags - small, minimal
+    .tag svg.svg-icon,
+    .tag i[icon-name] svg {
+        width: 14px;
+        height: 14px;
+        opacity: 0.7;
+    }
+    
+    // Theme toggle icons
+    i[icon-name="moon"] svg,
+    i[icon-name="sun"] svg {
+        stroke: var(--icon-stroke-default);
+        
+        &:hover {
+            stroke: var(--icon-stroke-active);
+            filter: drop-shadow(0 0 6px var(--icon-glow-hover));
+        }
+    }
+    
+    // Blog utilities
+    i[icon-name="bookmark"] svg,
+    i[icon-name="share"] svg,
+    i[icon-name="external-link"] svg,
+    i[icon-name="copy"] svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    // Mobile nav - icon only with minimum tap target
+    @media (max-width: 800px) {
+        .navbar svg.svg-icon,
+        .navbar i[icon-name] svg {
+            width: 22px;
+            height: 22px;
+            // Ensure minimum 40x40px tap target
+            padding: 9px;
+            min-width: 40px;
+            min-height: 40px;
+        }
+    }
+    
+    // Accessibility - ensure icons have proper labels
+    i[icon-name] {
+        // Provide accessible labels via aria-label
+        &[aria-label] {
+            // Good - has label
+        }
+        
+        &:not([aria-label]):not([aria-hidden="true"]) {
+            // Warn if missing label (visual only, not blocking)
+            &::after {
+                content: '';
+                // Visual indicator for missing label (dev only)
+            }
+        }
     }
 
     // Glassmorphism: Content area with frosted glass effect
@@ -90,10 +379,26 @@ body {
         margin-top: 120px;
         
         // Content header styling with glassmorphism
+        // Hero section with brighter halo for depth emphasis
         .content-header {
             margin-bottom: 2.5em;
             padding-bottom: 1.5em;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            
+            // Subtle glow behind hero section
+            &::before {
+                content: '';
+                position: absolute;
+                top: -20px;
+                left: -20px;
+                right: -20px;
+                bottom: -20px;
+                background: radial-gradient(circle at center, rgba(0, 229, 255, 0.1) 0%, transparent 70%);
+                border-radius: 20px;
+                z-index: -1;
+                pointer-events: none;
+            }
             
             h1 {
                 margin-top: 0;
@@ -170,7 +475,23 @@ body {
         }
         
         // Content body styling
+        // Ensure text areas have proper contrast on dark background
         .content-body {
+            // Additional glow for long-form content areas
+            position: relative;
+            
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: -40px;
+                left: -20px;
+                right: -20px;
+                height: 60px;
+                background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.3));
+                border-radius: 0 0 20px 20px;
+                pointer-events: none;
+                z-index: -1;
+            }
             margin-top: 2em;
         }
         
@@ -446,9 +767,9 @@ body {
                 display: flex;
                 align-items: center;
                 
+                // Icon sizing handled by global icon system
                 i {
-                    width: 16px;
-                    height: 16px;
+                    // Size handled by .search-icon svg rule above
                 }
             }
             
@@ -720,7 +1041,24 @@ body {
         }
         
         // Glassmorphism: Graph styling
+        // Enhanced with background glow integration
         .graph {
+            position: relative;
+            
+            // Subtle glow behind graph to enhance visual depth
+            &::before {
+                content: '';
+                position: absolute;
+                top: -10px;
+                left: -10px;
+                right: -10px;
+                bottom: -10px;
+                background: radial-gradient(circle at top-right, rgba(0, 229, 255, 0.08) 0%, transparent 60%);
+                border-radius: 12px;
+                z-index: -1;
+                pointer-events: none;
+            }
+            
             .graph-title-container {
                 margin-bottom: 10px;
                 padding-bottom: 8px;
@@ -738,6 +1076,8 @@ body {
             #link-graph {
                 border-radius: 6px;
                 margin-bottom: 8px;
+                // Ensure graph nodes are visible against dark background
+                background: rgba(0, 0, 0, 0.2);
             }
             
             #graph-controls {

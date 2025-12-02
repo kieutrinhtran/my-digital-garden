@@ -24,7 +24,7 @@
                 }
                 return acc;
             }, {});
-        return existing, n_remaining;
+        return [existing, n_remaining];
     }
 
     function filterLocalGraphData(graphData, depth) {
@@ -48,7 +48,7 @@
         let existing = {};
         existing[currentNode.url] = currentNode;
         for (let i = 0; i < depth; i++) {
-            existing, remaining = getNextLevelNeighbours(existing, remaining);
+            [existing, remaining] = getNextLevelNeighbours(existing, remaining);
         }
         nodes = Object.values(existing);
         if (!currentNode.home) {
