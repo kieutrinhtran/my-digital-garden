@@ -1,0 +1,229 @@
+{# 
+  Component: Posts Gallery
+  Description: Hiển thị tất cả bài viết dưới dạng gallery với glassmorphism style, nhóm theo folder/category
+#}
+{% set publishedNotes = collections.note | rejectattr("data.dg-publish", "equalto", false) | rejectattr("data.dgPublish", "equalto", false) | rejectattr("url", "equalto", "/") %}
+
+{# Nhóm các bài viết theo folder từ filetree #}
+{% if filetree %}
+    {% for folderKey, folderValue in filetree %}
+        {% if folderValue.isFolder %}
+            {% set folderNotes = [] %}
+            {% for itemKey, itemValue in folderValue %}
+                {% if itemValue.isNote and not itemValue.hide %}
+                    {% for note in publishedNotes %}
+                        {% if note.url == itemValue.permalink %}
+                            {% set folderNotes = folderNotes | concat([note]) %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+            
+            {% if folderNotes.length > 0 %}
+                <div class="posts-gallery-category">
+                    <div class="posts-gallery-category-header">
+                        <h3 class="posts-gallery-category-title">
+                            <i icon-name="folder"></i>
+                            {{ folderKey }}
+                            <span class="posts-gallery-category-count">{{ folderNotes.length }}</span>
+                        </h3>
+                    </div>
+                    
+                    <div class="posts-gallery-grid">
+                        {% for note in folderNotes %}
+                            <article class="post-gallery-card">
+                                <a href="{{ note.url }}" class="post-gallery-card-link">
+                                    {% if note.data.image or note.data.thumbnail %}
+                                        <div class="post-gallery-card-image">
+                                            <img src="{{ note.data.image or note.data.thumbnail }}" alt="{{ note.data.title or note.fileSlug }}" loading="lazy">
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="post-gallery-card-header">
+                                        {% if note.data.noteIcon %}
+                                            <div class="post-gallery-card-icon">
+                                                <i icon-name="{{ note.data.noteIcon }}"></i>
+                                            </div>
+                                        {% endif %}
+                                        {% if note.data.tags %}
+                                            <div class="post-gallery-card-tags">
+                                                {% for tag in note.data.tags %}
+                                                    {% if tag != 'gardenEntry' and tag != 'note' %}
+                                                        <span class="post-gallery-tag-badge">#{{ tag }}</span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="post-gallery-card-content">
+                                        <h3 class="post-gallery-card-title">
+                                            {{ note.data.title or note.fileSlug }}
+                                        </h3>
+                                        
+                                        {% if note.templateContent %}
+                                            {% set excerpt = note.templateContent | striptags | truncate(100) %}
+                                            {% if excerpt %}
+                                                <p class="post-gallery-card-excerpt">{{ excerpt }}</p>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="post-gallery-card-footer">
+                                        {% if note.date %}
+                                            <time class="post-gallery-card-date" datetime="{{ note.date | date: '%Y-%m-%d' }}">
+                                                <i icon-name="calendar"></i>
+                                                {{ note.date | date: "%d/%m/%Y" }}
+                                            </time>
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% elif folderValue.isNote and not folderValue.hide %}
+            {# Notes ở root level #}
+            {% for note in publishedNotes %}
+                {% if note.url == folderValue.permalink %}
+                    {% if not rootNotes %}
+                        {% set rootNotes = [note] %}
+                    {% else %}
+                        {% set rootNotes = rootNotes | concat([note]) %}
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+    
+    {# Hiển thị root notes nếu có #}
+    {% if rootNotes and rootNotes.length > 0 %}
+        <div class="posts-gallery-category">
+            <div class="posts-gallery-category-header">
+                <h3 class="posts-gallery-category-title">
+                    <i icon-name="folder"></i>
+                    Root
+                    <span class="posts-gallery-category-count">{{ rootNotes.length }}</span>
+                </h3>
+            </div>
+            
+            <div class="posts-gallery-grid">
+                {% for note in rootNotes %}
+                    <article class="post-gallery-card">
+                        <a href="{{ note.url }}" class="post-gallery-card-link">
+                            {% if note.data.image or note.data.thumbnail %}
+                                <div class="post-gallery-card-image">
+                                    <img src="{{ note.data.image or note.data.thumbnail }}" alt="{{ note.data.title or note.fileSlug }}" loading="lazy">
+                                </div>
+                            {% endif %}
+                            
+                            <div class="post-gallery-card-header">
+                                {% if note.data.noteIcon %}
+                                    <div class="post-gallery-card-icon">
+                                        <i icon-name="{{ note.data.noteIcon }}"></i>
+                                    </div>
+                                {% endif %}
+                                {% if note.data.tags %}
+                                    <div class="post-gallery-card-tags">
+                                        {% for tag in note.data.tags %}
+                                            {% if tag != 'gardenEntry' and tag != 'note' %}
+                                                <span class="post-gallery-tag-badge">#{{ tag }}</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="post-gallery-card-content">
+                                <h3 class="post-gallery-card-title">
+                                    {{ note.data.title or note.fileSlug }}
+                                </h3>
+                                
+                                {% if note.templateContent %}
+                                    {% set excerpt = note.templateContent | striptags | truncate(100) %}
+                                    {% if excerpt %}
+                                        <p class="post-gallery-card-excerpt">{{ excerpt }}</p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="post-gallery-card-footer">
+                                {% if note.date %}
+                                    <time class="post-gallery-card-date" datetime="{{ note.date | date: '%Y-%m-%d' }}">
+                                        <i icon-name="calendar"></i>
+                                        {{ note.date | date: "%d/%m/%Y" }}
+                                    </time>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </article>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+{% else %}
+    {# Fallback: hiển thị tất cả notes nếu không có filetree #}
+    <div class="posts-gallery-grid">
+        {% for note in publishedNotes %}
+            <article class="post-gallery-card">
+                <a href="{{ note.url }}" class="post-gallery-card-link">
+                    {% if note.data.image or note.data.thumbnail %}
+                        <div class="post-gallery-card-image">
+                            <img src="{{ note.data.image or note.data.thumbnail }}" alt="{{ note.data.title or note.fileSlug }}" loading="lazy">
+                        </div>
+                    {% endif %}
+                    
+                    <div class="post-gallery-card-header">
+                        {% if note.data.noteIcon %}
+                            <div class="post-gallery-card-icon">
+                                <i icon-name="{{ note.data.noteIcon }}"></i>
+                            </div>
+                        {% endif %}
+                        {% if note.data.tags %}
+                            <div class="post-gallery-card-tags">
+                                {% for tag in note.data.tags %}
+                                    {% if tag != 'gardenEntry' and tag != 'note' %}
+                                        <span class="post-gallery-tag-badge">#{{ tag }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="post-gallery-card-content">
+                        <h3 class="post-gallery-card-title">
+                            {{ note.data.title or note.fileSlug }}
+                        </h3>
+                        
+                        {% if note.templateContent %}
+                            {% set excerpt = note.templateContent | striptags | truncate(100) %}
+                            {% if excerpt %}
+                                <p class="post-gallery-card-excerpt">{{ excerpt }}</p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="post-gallery-card-footer">
+                        {% if note.date %}
+                            <time class="post-gallery-card-date" datetime="{{ note.date | date: '%Y-%m-%d' }}">
+                                <i icon-name="calendar"></i>
+                                {{ note.date | date: "%d/%m/%Y" }}
+                            </time>
+                        {% endif %}
+                    </div>
+                </a>
+            </article>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="posts-gallery-section">
+    <div class="posts-gallery-header">
+        <h2 class="posts-gallery-title">
+            <i icon-name="grid-3x3"></i>
+            Tất cả bài viết
+        </h2>
+        <p class="posts-gallery-subtitle">Khám phá tất cả các bài viết trong Digital Garden</p>
+    </div>
+

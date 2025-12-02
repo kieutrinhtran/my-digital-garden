@@ -2,7 +2,6 @@
   Component: Navigation
   Description: Next/Previous navigation buttons at the end of article
 #}
-{% if navigation.next or navigation.previous %}
 <nav class="article-navigation">
     <div class="article-navigation-container">
         {% if navigation.previous %}
@@ -50,17 +49,11 @@
         {% endif %}
     </div>
     
-      {# View Counter #}
+    {# View Counter #}
     <div class="view-counter" data-page-url="{{ permalink }}">
         <i icon-name="eye"></i>
         <span class="view-counter-label">Lượt xem:</span>
         <span class="view-counter-number" id="view-count-{{ page.fileSlug }}">0</span>
     </div>
 </nav>
-{% endif %}
-
-{# Related Posts #}
-{% if relatedPosts and relatedPosts.length > 0 %}
-{% include "components/relatedPosts.njk" %}
-{% endif %}
 

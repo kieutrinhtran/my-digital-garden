@@ -7,7 +7,7 @@
     - settings.dgShowFileTree: If true, shows mobile menu toggle (used in filetree mode)
 #}
 {%if settings.dgHomeLink === true%}
-    <nav class="navbar">
+    <nav class="navbar" x-data="{ mobileMenuOpen: false }">
         <div class="navbar-inner">
             {% if settings.dgShowFileTree === true %}
                 <span class="mobile-menu-toggle" @click="showFilesMobile=!showFilesMobile"><i icon-name="menu"></i></span>
@@ -22,19 +22,36 @@
                 {% include imp %}
             {% endfor %}
             
+            {# Mobile Menu Toggle Button #}
+            <button class="navbar-mobile-toggle" 
+                    @click="mobileMenuOpen = !mobileMenuOpen"
+                    aria-label="Toggle menu">
+                <i icon-name="menu" x-show="!mobileMenuOpen"></i>
+                <i icon-name="x" x-show="mobileMenuOpen"></i>
+            </button>
+            
             {# Horizontal Menu với Dropdown #}
             {% if filetree %}
-            <ul class="navbar-menu">
+            <ul class="navbar-menu" 
+                :class="{ 'navbar-menu-open': mobileMenuOpen }"
+                @click.away="mobileMenuOpen = false">
                 {%- for folderName, folder in filetree -%}
                     {% if folder.isFolder %}
-                        <li class="navbar-menu-item" x-data="{isOpen: false}">
-                            <a href="#" 
+                        <li class="navbar-menu-item" 
+                            x-data="{isOpen: false, timeout: null}"
+                            @mouseenter="clearTimeout(timeout); isOpen = true"
+                            @mouseleave="timeout = setTimeout(() => { isOpen = false }, 200)">
+                            {%- set firstNote = null -%}
+                            {%- for itemName, item in folder -%}
+                                {%- if item.isNote and not item.hide and not firstNote -%}
+                                    {%- set firstNote = item -%}
+                                {%- endif -%}
+                            {%- endfor -%}
+                            <a href="{% if firstNote %}{{ firstNote.permalink }}{% else %}#{% endif %}" 
                                class="navbar-menu-link"
-                               @click.prevent="isOpen = !isOpen"
-                               @mouseenter="isOpen = true"
-                               @mouseleave="isOpen = false">
+                               @click="if (event.target.closest('.dropdown-icon')) { event.preventDefault(); event.stopPropagation(); isOpen = !isOpen; } else if (!event.target.closest('.navbar-dropdown')) { window.location.href = this.href; }">
                                 {{ folderName }}
-                                <i icon-name="chevron-down" class="dropdown-icon"></i>
+                                <i icon-name="chevron-down" class="dropdown-icon" @click.stop.prevent="isOpen = !isOpen"></i>
                             </a>
                             {% set hasItems = false %}
                             {%- for itemName, item in folder -%}
@@ -45,7 +62,8 @@
                             {% if hasItems %}
                                 <ul class="navbar-dropdown" 
                                     x-show="isOpen" 
-                                    @click.away="isOpen = false"
+                                    @mouseenter="clearTimeout($el.closest('.navbar-menu-item').__x.$data.timeout); isOpen = true"
+                                    @mouseleave="$el.closest('.navbar-menu-item').__x.$data.timeout = setTimeout(() => { isOpen = false }, 200)"
                                     x-transition:enter="transition ease-out duration-200"
                                     x-transition:enter-start="opacity-0 transform -translate-y-1"
                                     x-transition:enter-end="opacity-100 transform translate-y-0"
@@ -93,9 +111,35 @@
             </ul>
             {% endif %}
         </div>
-        {% if settings.dgEnableSearch === true%}
-            {% include "components/searchButton.njk" %}
-        {%endif%}
+        <div class="navbar-actions">
+            {# Sidebar Toggle Button #}
+            <button class="navbar-toggle-btn sidebar-toggle-navbar" 
+                    x-data="{ sidebarOpen: true }"
+                    x-init="
+                        const sidebarEl = document.querySelector('.sidebar-wrapper');
+                        if (sidebarEl && sidebarEl.__x) {
+                            $watch(() => sidebarEl.__x.$data.isOpen, value => {
+                                sidebarOpen = value;
+                            });
+                        }
+                    "
+                    @click="
+                        sidebarOpen = !sidebarOpen;
+                        const sidebarEl = document.querySelector('.sidebar-wrapper');
+                        if (sidebarEl && sidebarEl.__x) {
+                            sidebarEl.__x.$data.isOpen = sidebarOpen;
+                        }
+                    "
+                    aria-label="Toggle sidebar"
+                    title="Bật/tắt sidebar">
+                <i icon-name="panel-right" x-show="!sidebarOpen"></i>
+                <i icon-name="panel-right-close" x-show="sidebarOpen" style="opacity: 0.5;"></i>
+            </button>
+            
+            {% if settings.dgEnableSearch === true%}
+                {% include "components/searchButton.njk" %}
+            {%endif%}
+        </div>
     </nav>
     {%else%}
     <div class="empty-navbar" >

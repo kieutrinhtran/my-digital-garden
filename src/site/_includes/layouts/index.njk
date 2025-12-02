@@ -23,6 +23,9 @@
       {%include "components/searchContainer.njk"%}
     {% endif %}
 
+    {# TOC Left Sidebar #}
+    {% include "components/tocLeft.njk" %}
+
     <main class="content cm-s-obsidian {{contentClasses}}">
       <header class="content-header">
         {% if settings.dgShowInlineTitle === true %}
@@ -108,7 +111,13 @@
       {% include imp %}
     {% endfor %}
     
-    {%include "components/lucideIcons.njk"%}
+    <script>
+        lucide.createIcons({
+            attrs: {
+                class: ["svg-icon"]
+            }
+        });
+    </script>
     {%include "components/vercelAnalytics.njk"%}
     {%include "components/backToTop.njk"%}
   </body>

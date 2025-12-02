@@ -1,0 +1,26 @@
+{# 
+  Component: TOC Left Sidebar
+  Description: Table of Contents displayed on the left side of every page
+#}
+{%set tocHtml= (content and (content|toc)) %}
+{%if tocHtml %}
+    <aside class="toc-left-sidebar" x-data="{ isOpen: true }" x-init="setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 100)">
+        <div class="toc-left-container" :class="{ 'toc-collapsed': !isOpen }">
+            <div class="toc-left-title-container">
+                <div class="toc-left-title">
+                    <i icon-name="list" 
+                       @click="isOpen = !isOpen" 
+                       class="toc-toggle-icon svg-icon"
+                       :class="{ 'toc-icon-active': isOpen }"
+                       title="Bật/tắt mục lục"
+                       x-init="setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50)"></i>
+                    <span x-show="isOpen" x-transition>On this page</span>
+                </div>
+            </div>
+            <div class="toc-left-content" x-show="isOpen" x-transition>
+                {{ tocHtml | safe }}
+            </div>
+        </div>
+    </aside>
+{%endif%}
+

@@ -1,0 +1,40 @@
+{# 
+  Component: Breadcrumb Navigation
+  Description: Shows the current page's location in the site hierarchy
+  Usage: {% include "components/breadcrumb.njk" %}
+#}
+{% if page.url != "/" %}
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol class="breadcrumb-list">
+        <li class="breadcrumb-item">
+            <a href="/" class="breadcrumb-link">
+                <i icon-name="home"></i>
+                <span>Home</span>
+            </a>
+        </li>
+        {% if page.url starts with "/notes/" %}
+        <li class="breadcrumb-item">
+            <span class="breadcrumb-separator">
+                <i icon-name="chevron-right"></i>
+            </span>
+            <a href="/notes/" class="breadcrumb-link">Notes</a>
+        </li>
+        {% endif %}
+        {% if page.url starts with "/tags/" %}
+        <li class="breadcrumb-item">
+            <span class="breadcrumb-separator">
+                <i icon-name="chevron-right"></i>
+            </span>
+            <a href="/tags/" class="breadcrumb-link">Tags</a>
+        </li>
+        {% endif %}
+        <li class="breadcrumb-item breadcrumb-current" aria-current="page">
+            <span class="breadcrumb-separator">
+                <i icon-name="chevron-right"></i>
+            </span>
+            <span>{{ title or page.fileSlug }}</span>
+        </li>
+    </ol>
+</nav>
+{% endif %}
+

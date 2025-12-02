@@ -26,8 +26,14 @@ permalink: "notes/{{ page.fileSlug | slugify }}/"
       {%include "components/searchContainer.njk"%}
     {% endif %}
 
+    {# TOC Left Sidebar #}
+    {% include "components/tocLeft.njk" %}
+
     <main class="content cm-s-obsidian {{contentClasses}}">
       <header class="content-header">
+        {# Breadcrumb Navigation #}
+        {% include "components/breadcrumb.njk" %}
+        
         {% if settings.dgShowInlineTitle === true %}
           <h1 data-note-icon="{% if noteIcon %}{{noteIcon}}{% else %}{{meta.noteIconsSettings.default}}{% endif %}">
             {% if title %}{{ title }}{% else %}{{ page.fileSlug }}{% endif %}
@@ -116,7 +122,13 @@ permalink: "notes/{{ page.fileSlug | slugify }}/"
       {% include imp %}
     {% endfor %}
     
-    {%include "components/lucideIcons.njk"%}
+    <script>
+        lucide.createIcons({
+            attrs: {
+                class: ["svg-icon"]
+            }
+        });
+    </script>
     {%include "components/vercelAnalytics.njk"%}
     {%include "components/backToTop.njk"%}
   </body>

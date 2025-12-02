@@ -1,6 +1,27 @@
-<aside>
-      <div class="sidebar">
-            <div class="sidebar-container">
+<aside class="sidebar-wrapper"
+       x-data="{ isOpen: true }"
+       x-init="setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 100)">
+      <div class="sidebar" :class="{ 'sidebar-collapsed': !isOpen }">
+            <div class="sidebar-container" :class="{ 'sidebar-container-collapsed': !isOpen }">
+                  {# Icon toggle khi collapsed #}
+                  <div class="sidebar-toggle-icon-wrapper" x-show="!isOpen" x-transition>
+                      <i icon-name="panel-right-open" 
+                         @click="isOpen = true" 
+                         class="sidebar-toggle-icon svg-icon"
+                         title="Mở sidebar"
+                         x-init="setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50)"></i>
+                  </div>
+                  
+                  {# Nội dung sidebar khi mở #}
+                  <div x-show="isOpen" x-transition>
+                      <div class="sidebar-header">
+                          <button class="sidebar-toggle-btn" 
+                                  @click="isOpen = false"
+                                  aria-label="Close sidebar"
+                                  title="Đóng sidebar">
+                              <i icon-name="x"></i>
+                          </button>
+                      </div>
                   {% for imp in dynamics.sidebar.top %}
                         {% include imp %}
                   {% endfor %}
@@ -20,61 +41,14 @@
                               </div>
                         </div>
                   {%endif%}
-                  {%set tocHtml= (content and (content|toc)) %}
-                  {%if tocHtml %}
-                        <div class="toc">
-                              <div class="toc-title-container">
-                                    <div class="toc-title">
-                                          On this page
-                                    </div>
-                              </div>
-                              <div class="toc-container">
-                                    {{ tocHtml | safe }}
-                              </div>
-                        </div>
-                  {%endif%}
 
                   {%if settings.dgShowLocalGraph === true%}
                         {%include "components/graphScript.njk"%}
                   {%endif%}
-
-                        {%if settings.dgShowBacklinks === true %}
-                              <div class="backlinks">
-                                    <div class="backlink-title" style="margin: 4px 0 !important;">Pages mentioning this page</div>
-                                          <div class="backlink-list">
-                                          {%- if page.url == "/" -%}
-                                                {%- if graph.nodes[graph.homeAlias].backLinks.length === 0 -%}
-                                                      <div class="backlink-card">
-                                                            <span class="no-backlinks-message">No other pages mentions this page</span>
-                                                      </div>
-                                                {%- endif -%}
-                                          {%- for backlink in graph.nodes[graph.homeAlias].backLinks -%}
-                                                {%- if graph.nodes[backlink].url != graph.homeAlias -%}
-                                                <div class="backlink-card">
-                                                      {%- if not meta.noteIconsSettings.backlinks -%}<i  icon-name="link"></i> {%- endif -%}<a href="{{graph.nodes[backlink].url}}" data-note-icon="{{graph.nodes[backlink].noteIcon}}" class="backlink">{{graph.nodes[backlink].title}}</a>
-                                                </div>
-                                                {%- endif -%}
-                                          {%- endfor -%}
-                                          {%- else -%}
-                                                {%- if graph.nodes[page.url].backLinks.length === 0 -%}
-                                                      <div class="backlink-card">
-                                                            <span class="no-backlinks-message">No other pages mentions this page</span>
-                                                      </div>
-                                                {%- endif -%}
-                                          {%- for backlink in graph.nodes[page.url].backLinks -%}
-                                                {%- if graph.nodes[backlink].url != page.url -%}
-                                                <div class="backlink-card">
-                                                      {%- if not meta.noteIconsSettings.backlinks -%}<i  icon-name="link"></i> {%- endif -%}<a href="{{graph.nodes[backlink].url}}" data-note-icon="{{graph.nodes[backlink].noteIcon}}" class="backlink">{{graph.nodes[backlink].title}}</a>
-                                                </div>
-                                                {%- endif -%}
-                                          {%- endfor -%}
-                                    {%- endif -%}
-                                    </div>
-                              </div>
-                        {%endif%}
-                  {% for imp in dynamics.sidebar.bottom %}
-                        {% include imp %}
-                  {% endfor %}
+                      {% for imp in dynamics.sidebar.bottom %}
+                            {% include imp %}
+                      {% endfor %}
+                  </div>
             </div>
       </div>
 </aside>

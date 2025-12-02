@@ -4,6 +4,7 @@ pagination:
   size: 1
   alias: tag
 permalink: /tags/{{ tag | slugify }}/index.html
+layout: layouts/index.njk
 eleventyComputed:
   title: "Tag: {{ tag }}"
 ---
@@ -12,6 +13,9 @@ eleventyComputed:
 {% set taggedCount = taggedNotes | length %}
 
 <div class="tag-page">
+    {# Breadcrumb Navigation #}
+    {% include "components/breadcrumb.njk" %}
+    
     <header class="tag-header">
         <div class="tag-badge">
             <i icon-name="tag"></i>

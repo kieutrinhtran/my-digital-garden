@@ -309,7 +309,41 @@
         return null;
     }
 </script>
-<div  x-init="{graphData, fullGraphData} = await fetchGraphData();" x-data="{ graphData: null, depth: 1, graph: null, fullGraph: null, showFullGraph: false, fullScreen: false, fullGraphData: null}" id="graph-component" x-bind:class="fullScreen ? 'graph graph-fs' : 'graph'" v-scope>
+<div  x-init="{graphData, fullGraphData} = await fetchGraphData();" 
+      x-data="{ 
+        graphData: null, 
+        depth: 1, 
+        graph: null, 
+        fullGraph: null, 
+        showFullGraph: false, 
+        fullScreen: false, 
+        fullGraphData: null,
+        showFilters: false,
+        filters: {
+          tags: false,
+          attachments: false,
+          existingFilesOnly: true,
+          orphans: true
+        },
+        groups: [],
+        newGroupPath: '',
+        display: {
+          arrows: false,
+          textFadeThreshold: 50,
+          nodeSize: 25,
+          linkThickness: 1
+        },
+        forces: {
+          centerForce: 50,
+          repelForce: 50,
+          linkForce: 50,
+          linkDistance: 50
+        },
+        animate: false
+      }" 
+      id="graph-component" 
+      x-bind:class="fullScreen ? 'graph graph-fs' : 'graph'" 
+      v-scope>
     <div class="graph-title-container">
         <div class="graph-title">Connected Pages</div>
         <div id="graph-controls">
@@ -326,11 +360,126 @@
                     <span id="depth-display" x-text="depth"></span>
                 </div>
                 <div class="ctrl-right">
+                    <span id="graph-filters-btn" x-on:click="showFilters = !showFilters" title="Filters">
+                        <i icon-name="filter" aria-hidden="true"></i>
+                    </span>
                     <span id="global-graph-btn" x-on:click="showFullGraph = true; setTimeout(() => {fullGraph = openFullGraph(fullGraphData)}, 100)"><i  icon-name="globe" aria-hidden="true"></i></span>
                     <span  id="graph-fs-btn"  x-on:click="fullScreen = !fullScreen"><i  icon-name="expand" aria-hidden="true"></i></span>
                 </div>
         </div>
     </div>
+    
+    {# Graph Filters Panel #}
+    <div class="graph-filters-panel" x-show="showFilters" x-transition style="display: none;">
+        <div class="graph-filters-header">
+            <h3 class="graph-filters-title">Filters</h3>
+            <div class="graph-filters-actions">
+                <button class="graph-filters-refresh" title="Refresh">
+                    <i icon-name="refresh-cw"></i>
+                </button>
+                <button class="graph-filters-close" @click="showFilters = false" title="Close">
+                    <i icon-name="x"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="graph-filters-search">
+            <i icon-name="search"></i>
+            <input type="text" placeholder="Search files..." x-model="newGroupPath">
+        </div>
+        
+        {# Filters Section #}
+        <div class="graph-filters-section">
+            <h4 class="graph-filters-section-title">Filters</h4>
+            <div class="graph-filters-list">
+                <label class="graph-filter-item">
+                    <span>Tags</span>
+                    <input type="checkbox" x-model="filters.tags" class="graph-toggle">
+                </label>
+                <label class="graph-filter-item">
+                    <span>Attachments</span>
+                    <input type="checkbox" x-model="filters.attachments" class="graph-toggle">
+                </label>
+                <label class="graph-filter-item">
+                    <span>Existing files only</span>
+                    <input type="checkbox" x-model="filters.existingFilesOnly" class="graph-toggle">
+                </label>
+                <label class="graph-filter-item">
+                    <span>Orphans</span>
+                    <input type="checkbox" x-model="filters.orphans" class="graph-toggle">
+                </label>
+            </div>
+        </div>
+        
+        {# Groups Section #}
+        <div class="graph-filters-section">
+            <h4 class="graph-filters-section-title">Groups</h4>
+            <div class="graph-groups-list">
+                <template x-for="(group, index) in groups" :key="index">
+                    <div class="graph-group-item">
+                        <span class="graph-group-color" :style="'background: ' + (group.color || '#87CEEB')"></span>
+                        <span class="graph-group-path" x-text="'path:\"' + group.path + '\"'"></span>
+                        <button class="graph-group-remove" @click="groups.splice(index, 1)">
+                            <i icon-name="x"></i>
+                        </button>
+                    </div>
+                </template>
+                <button class="graph-group-new" @click="if(newGroupPath) { groups.push({path: newGroupPath, color: '#' + Math.floor(Math.random()*16777215).toString(16)}); newGroupPath = ''; }">
+                    New group
+                </button>
+            </div>
+        </div>
+        
+        {# Display Section #}
+        <div class="graph-filters-section">
+            <h4 class="graph-filters-section-title">Display</h4>
+            <div class="graph-filters-list">
+                <label class="graph-filter-item">
+                    <span>Arrows</span>
+                    <input type="checkbox" x-model="display.arrows" class="graph-toggle">
+                </label>
+                <label class="graph-filter-item">
+                    <span>Text fade threshold</span>
+                    <input type="range" x-model.number="display.textFadeThreshold" min="0" max="100" class="graph-slider">
+                </label>
+                <label class="graph-filter-item">
+                    <span>Node size</span>
+                    <input type="range" x-model.number="display.nodeSize" min="5" max="50" class="graph-slider">
+                </label>
+                <label class="graph-filter-item">
+                    <span>Link thickness</span>
+                    <input type="range" x-model.number="display.linkThickness" min="0.5" max="5" step="0.1" class="graph-slider">
+                </label>
+                <button class="graph-animate-btn" @click="animate = !animate" :class="{ 'active': animate }">
+                    Animate
+                </button>
+            </div>
+        </div>
+        
+        {# Forces Section #}
+        <div class="graph-filters-section">
+            <h4 class="graph-filters-section-title">Forces</h4>
+            <div class="graph-filters-list">
+                <label class="graph-filter-item">
+                    <span>Center force</span>
+                    <input type="range" x-model.number="forces.centerForce" min="0" max="100" class="graph-slider">
+                </label>
+                <label class="graph-filter-item">
+                    <span>Repel force</span>
+                    <input type="range" x-model.number="forces.repelForce" min="0" max="100" class="graph-slider">
+                </label>
+                <label class="graph-filter-item">
+                    <span>Link force</span>
+                    <input type="range" x-model.number="forces.linkForce" min="0" max="100" class="graph-slider">
+                </label>
+                <label class="graph-filter-item">
+                    <span>Link distance</span>
+                    <input type="range" x-model.number="forces.linkDistance" min="0" max="100" class="graph-slider">
+                </label>
+            </div>
+        </div>
+    </div>
+    
     <div x-effect="window.graph = renderLocalGraph(graphData, depth, fullScreen)" id="link-graph" ></div>
     <div x-show="showFullGraph" id="full-graph" class="show" style="display: none;">
         <span id="full-graph-close" x-on:click="fullGraph = closefullGraph(fullGraph); showFullGraph = false;"><i icon-name="x" aria-hidden="true"></i></span><div id="full-graph-container"></div>
