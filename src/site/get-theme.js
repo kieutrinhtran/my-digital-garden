@@ -2,7 +2,7 @@ require("dotenv").config();
 const axios = require("axios");
 const fs = require("fs");
 const crypto = require("crypto");
-const {globSync} = require("glob");
+const { globSync } = require("glob");
 
 const themeCommentRegex = /\/\*[\s\S]*?\*\//g;
 
