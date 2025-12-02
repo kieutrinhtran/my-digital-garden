@@ -1,5 +1,5 @@
 ---
-{"dg-publish":true,"permalink":"/1-data-analyst/1-xac-suat/","updated":"2025-11-21T02:28:55.212+07:00"}
+{"dg-publish":true,"permalink":"/1-data-analyst/1-xac-suat/","updated":"2025-12-02T11:32:16.612+07:00"}
 ---
 
 
@@ -9,7 +9,6 @@
 - Biến cố (Events)
 - Xác suất của biến cố P(A)P(A)P(A), thỏa mãn:
     $$0≤P(A)≤1, P(S)=1$$
-
 ### 2. **Tính xác suất**
 - Quy tắc cộng:
     $$P(A∪B)=P(A)+P(B)−P(A∩B)$$
