@@ -43,12 +43,11 @@ async function getGraph(data) {
   let homeAlias = "/";
   let nodeIdCounter = 0;
 
-  // Process notes sequentially to handle async reads
+  // Process notes in parallel for better performance
   const notes = data.collections.note || [];
   
-  // Pre-process all notes to extract metadata
-  for (let idx = 0; idx < notes.length; idx++) {
-    const v = notes[idx];
+  // Pre-process all notes to extract metadata in parallel
+  const notePromises = notes.map(async (v) => {
     const fpath = v.filePathStem.replace("/notes/", "");
     const parts = fpath.split("/");
     // Group by folder path - use full folder path for better grouping
@@ -56,32 +55,62 @@ async function getGraph(data) {
       ? parts.slice(0, -1).join("/")
       : "none";
 
-    // Use async read() method instead of accessing frontMatter directly
-    const templateContent = await v.template.read();
-    const content = templateContent?.content || "";
+    // Use async read() method - read in parallel
+    // Tối ưu: chỉ đọc content nếu thực sự cần (có links trong frontmatter hoặc data)
+    let content = "";
+    try {
+      // Luôn dùng template.read() để tránh lỗi TemplateContentPrematureUseError
+      if (v.template && typeof v.template.read === 'function') {
+        const templateContent = await v.template.read();
+        content = templateContent?.content || "";
+      } else {
+        // Fallback: try to get content from data if available
+        content = v.content || "";
+      }
+    } catch (error) {
+      // Fallback: try to get content from data if available
+      content = v.content || "";
+    }
 
     // Check if home page more efficiently
     const isHome = v.data["dg-home"] || 
       (Array.isArray(v.data.tags) && v.data.tags.includes("gardenEntry"));
 
-    nodes[v.url] = {
-      id: nodeIdCounter++,
-      title: v.data.title || v.fileSlug,
+    return {
       url: v.url,
+      fpath,
+      group,
+      isHome,
+      content,
+      title: v.data.title || v.fileSlug,
+      noteIcon: v.data.noteIcon || process.env.NOTE_ICON_DEFAULT,
+      hide: v.data.hideInGraph || false,
+    };
+  });
+  
+  // Wait for all reads to complete in parallel
+  const noteResults = await Promise.all(notePromises);
+  
+  // Process results and assign IDs sequentially
+  noteResults.forEach(({ url, fpath, group, isHome, content, title, noteIcon, hide }) => {
+    nodes[url] = {
+      id: nodeIdCounter++,
+      title,
+      url,
       group,
       home: isHome,
       outBound: extractLinks(content),
       neighbors: new Set(),
       backLinks: new Set(),
-      noteIcon: v.data.noteIcon || process.env.NOTE_ICON_DEFAULT,
-      hide: v.data.hideInGraph || false,
+      noteIcon,
+      hide,
       isFolder: false,
     };
-    stemURLs[fpath] = v.url;
+    stemURLs[fpath] = url;
     if (isHome) {
-      homeAlias = v.url;
+      homeAlias = url;
     }
-  }
+  });
   
   // Build folder structure map - optimized
   const folderToNodes = {};

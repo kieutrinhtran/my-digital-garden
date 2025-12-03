@@ -1,12 +1,12 @@
 require("dotenv").config();
-const { globSync } = require("glob");
+const glob = require("glob");
 
 module.exports = async (data) => {
   let baseUrl = process.env.SITE_BASE_URL || "";
   if (baseUrl && !baseUrl.startsWith("http")) {
     baseUrl = "https://" + baseUrl;
   }
-  let themeStyle = globSync("src/site/styles/_theme.*.css")[0] || "";
+  let themeStyle = glob.sync("src/site/styles/_theme.*.css")[0] || "";
   if (themeStyle) {
     themeStyle = themeStyle.split("site")[1];
   }

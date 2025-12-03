@@ -5,9 +5,31 @@ const { getNextPreviousNotes } = require("../../helpers/navigationUtils");
 const { getRelatedPosts } = require("../../helpers/relatedPosts");
 const { generatePostHeatmap, generateMonthHeatmap, generateWeekHeatmap, groupByWeeks } = require("../../helpers/postHeatmap");
 
+// Cache cho graph và filetree để tránh tính toán lại
+const graphCache = new Map();
+const filetreeCache = new Map();
+
 module.exports = {
-  graph: async (data) => await getGraph(data),
-  filetree: (data) => getFileTree(data),
+  graph: async (data) => {
+    // Luôn tính graph vì graph.njk cần nó, nhưng cache để tối ưu
+    const cacheKey = JSON.stringify(data.collections?.note?.map(n => n.url).sort() || []);
+    if (graphCache.has(cacheKey)) {
+      return graphCache.get(cacheKey);
+    }
+    const graph = await getGraph(data);
+    graphCache.set(cacheKey, graph);
+    return graph;
+  },
+  filetree: (data) => {
+    // Cache filetree để không tính lại cho mỗi page
+    const cacheKey = JSON.stringify(data.collections?.note?.map(n => n.url).sort() || []);
+    if (filetreeCache.has(cacheKey)) {
+      return filetreeCache.get(cacheKey);
+    }
+    const filetree = getFileTree(data);
+    filetreeCache.set(cacheKey, filetree);
+    return filetree;
+  },
   userComputed: (data) => userComputed(data),
   navigation: (data) => {
     // Chỉ tính navigation cho note pages (không phải homepage)
@@ -46,21 +68,31 @@ module.exports = {
       tags: data.tags || []
     };
   },
-  // Post Heatmap
+  // Post Heatmap - chỉ tính cho index page để tối ưu performance
   postHeatmap: (data) => {
+    // Chỉ tính cho homepage/index page
+    if (data.tags && data.tags.indexOf("gardenEntry") === -1 && data.url !== "/") {
+      return null;
+    }
+    
     const notes = data.collections.note || [];
     
-    // Year view (1 year)
+    // Year view (1 year) - chỉ tính view này cho dev mode để nhanh hơn
     const yearData = generatePostHeatmap(notes);
     const yearWeeks = groupByWeeks(yearData.data);
     
-    // Month view (1 month)
-    const monthData = generateMonthHeatmap(notes);
-    const monthWeeks = groupByWeeks(monthData.data);
+    // Month và Week views chỉ tính trong production
+    let monthData = null;
+    let monthWeeks = [];
+    let weekData = null;
+    let weekWeeks = [];
     
-    // Week view (1 week)
-    const weekData = generateWeekHeatmap(notes);
-    const weekWeeks = groupByWeeks(weekData.data);
+    if (process.env.ELEVENTY_ENV === "prod" || process.env.NODE_ENV === "production") {
+      monthData = generateMonthHeatmap(notes);
+      monthWeeks = groupByWeeks(monthData.data);
+      weekData = generateWeekHeatmap(notes);
+      weekWeeks = groupByWeeks(weekData.data);
+    }
     
     return {
       year: {
@@ -70,20 +102,20 @@ module.exports = {
         startDate: yearData.startDate,
         endDate: yearData.endDate
       },
-      month: {
+      month: monthData ? {
         weeks: monthWeeks,
         maxCount: monthData.maxCount,
         totalDays: monthData.totalDays,
         startDate: monthData.startDate,
         endDate: monthData.endDate
-      },
-      week: {
+      } : null,
+      week: weekData ? {
         weeks: weekWeeks,
         maxCount: weekData.maxCount,
         totalDays: weekData.totalDays,
         startDate: weekData.startDate,
         endDate: weekData.endDate
-      },
+      } : null,
       // Default view (year) for backward compatibility
       weeks: yearWeeks,
       maxCount: yearData.maxCount,

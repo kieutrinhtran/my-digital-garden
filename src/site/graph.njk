@@ -1,5 +1,11 @@
 ---
 permalink: /graph.json
 eleventyExcludeFromCollections: true
+eleventyComputed:
+  skipGraph: "{% if graph == null %}true{% else %}false{% endif %}"
 ---
+{% if graph != null %}
 {{ graph | jsonify | safe }}
+{% else %}
+{}
+{% endif %}
