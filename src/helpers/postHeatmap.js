@@ -144,15 +144,30 @@ function generateMonthHeatmap(notes) {
 /**
  * Tạo dữ liệu heatmap cho 1 tuần gần nhất
  */
-function generateWeekHeatmap(notes) {
-  const today = new Date();
-  const oneWeekAgo = new Date(today);
-  oneWeekAgo.setDate(today.getDate() - 7);
+function generateWeekHeatmap(notes, targetDate = null) {
+  // Tính tuần hiện tại (từ thứ 2 đến chủ nhật)
+  const referenceDate = targetDate ? new Date(targetDate) : new Date();
+  const dayOfWeek = referenceDate.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  
+  // Tính thứ 2 của tuần (nếu là chủ nhật thì lùi 6 ngày, nếu không thì lùi dayOfWeek - 1)
+  const monday = new Date(referenceDate);
+  if (dayOfWeek === 0) {
+    monday.setDate(referenceDate.getDate() - 6); // Chủ nhật -> thứ 2 tuần trước
+  } else {
+    monday.setDate(referenceDate.getDate() - (dayOfWeek - 1));
+  }
+  monday.setHours(0, 0, 0, 0);
+  
+  // Tính chủ nhật của tuần (thứ 2 + 6 ngày)
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
   
   const dateMap = new Map();
-  const currentDate = new Date(oneWeekAgo);
+  const currentDate = new Date(monday);
   
-  while (currentDate <= today) {
+  // Tạo map cho 7 ngày (thứ 2 đến chủ nhật)
+  while (currentDate <= sunday) {
     const dateKey = formatDateKey(currentDate);
     dateMap.set(dateKey, 0);
     currentDate.setDate(currentDate.getDate() + 1);
@@ -163,7 +178,8 @@ function generateWeekHeatmap(notes) {
     if (!noteDate) return;
     
     const date = new Date(noteDate);
-    if (date >= oneWeekAgo && date <= today) {
+    date.setHours(0, 0, 0, 0);
+    if (date >= monday && date <= sunday) {
       const dateKey = formatDateKey(date);
       const currentCount = dateMap.get(dateKey) || 0;
       dateMap.set(dateKey, currentCount + 1);
@@ -203,8 +219,8 @@ function generateWeekHeatmap(notes) {
     data: heatmapData,
     maxCount: maxCount,
     totalDays: heatmapData.length,
-    startDate: oneWeekAgo,
-    endDate: today
+    startDate: monday,
+    endDate: sunday
   };
 }
 
@@ -291,10 +307,100 @@ function groupByWeeks(heatmapData) {
   return weeks;
 }
 
+/**
+ * Tính toán stats cho hôm nay và streak
+ */
+function calculateTodayStatsAndStreak(notes) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const todayKey = formatDateKey(today);
+  
+  // Đếm số bài viết hôm nay
+  let todayCount = 0;
+  notes.forEach(note => {
+    const noteDate = note.date || note.data.date || note.data.updated;
+    if (!noteDate) return;
+    
+    const date = new Date(noteDate);
+    date.setHours(0, 0, 0, 0);
+    const dateKey = formatDateKey(date);
+    
+    if (dateKey === todayKey) {
+      todayCount++;
+    }
+  });
+  
+  // Tính streak (số ngày liên tiếp có bài viết, tính từ hôm nay ngược lại)
+  let streak = 0;
+  const dateMap = new Map();
+  
+  // Tạo map tất cả ngày có bài viết
+  notes.forEach(note => {
+    const noteDate = note.date || note.data.date || note.data.updated;
+    if (!noteDate) return;
+    
+    const date = new Date(noteDate);
+    date.setHours(0, 0, 0, 0);
+    const dateKey = formatDateKey(date);
+    
+    if (date <= today) {
+      dateMap.set(dateKey, (dateMap.get(dateKey) || 0) + 1);
+    }
+  });
+  
+  // Tính streak từ hôm nay ngược lại
+  let checkDate = new Date(today);
+  while (true) {
+    const dateKey = formatDateKey(checkDate);
+    if (dateMap.has(dateKey) && dateMap.get(dateKey) > 0) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  
+  // Tính thời gian trung bình (giả sử mỗi bài viết mất 5 phút)
+  const avgTimePerPost = 5; // phút
+  const todayTime = todayCount * avgTimePerPost;
+  
+  // Tính pace (giây/bài viết) - giả sử 300 giây = 5 phút mỗi bài
+  const pacePerPost = 300; // giây
+  const todayPace = todayCount > 0 ? pacePerPost : 0;
+  
+  // Tính retention (phần trăm ngày có bài viết trong 30 ngày qua)
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  let daysWithPosts = 0;
+  let checkRetentionDate = new Date(thirtyDaysAgo);
+  while (checkRetentionDate <= today) {
+    const dateKey = formatDateKey(checkRetentionDate);
+    if (dateMap.has(dateKey) && dateMap.get(dateKey) > 0) {
+      daysWithPosts++;
+    }
+    checkRetentionDate.setDate(checkRetentionDate.getDate() + 1);
+  }
+  
+  const retention = Math.round((daysWithPosts / 30) * 100);
+  
+  return {
+    todayStats: {
+      studied: todayCount,
+      time: todayTime,
+      pace: todayPace,
+      retention: retention
+    },
+    streak: streak
+  };
+}
+
 module.exports = {
   generatePostHeatmap,
   generateMonthHeatmap,
   generateWeekHeatmap,
-  groupByWeeks
+  groupByWeeks,
+  calculateTodayStatsAndStreak
 };
 

@@ -650,6 +650,22 @@ module.exports = function (eleventyConfig) {
     return variable;
   });
   
+  // Filter để làm tròn số
+  eleventyConfig.addFilter("round", function (number, decimals, method) {
+    if (typeof number !== "number" || isNaN(number)) return number;
+    if (decimals === undefined) decimals = 0;
+    
+    const factor = Math.pow(10, decimals);
+    
+    if (method === "floor") {
+      return Math.floor(number * factor) / factor;
+    } else if (method === "ceil") {
+      return Math.ceil(number * factor) / factor;
+    } else {
+      return Math.round(number * factor) / factor;
+    }
+  });
+  
   // Filter để lọc notes theo tag
   eleventyConfig.addFilter("filterByTag", function(notes, tag) {
     if (!Array.isArray(notes) || !tag) return [];

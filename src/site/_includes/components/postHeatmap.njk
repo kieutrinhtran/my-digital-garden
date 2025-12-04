@@ -3,14 +3,86 @@
   Description: Hiển thị heatmap số bài đăng theo ngày (GitHub-style)
 #}
 {% if postHeatmap and postHeatmap.weeks %}
-<div class="post-heatmap-container" x-data="{ selectedDate: null, selectedCount: null }">
+<div class="post-heatmap-container" x-data="{ 
+    selectedDate: null, 
+    selectedCount: null, 
+    currentView: 'year',
+    currentYear: new Date().getFullYear(),
+    currentMonth: new Date().getMonth(),
+    currentWeekStart: null,
+    getCurrentPeriodLabel() {
+        if (this.currentView === 'month') {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return monthNames[this.currentMonth] + ' ' + this.currentYear;
+        } else if (this.currentView === 'week') {
+            if (this.currentWeekStart) {
+                const date = new Date(this.currentWeekStart);
+                const endDate = new Date(date);
+                endDate.setDate(endDate.getDate() + 6);
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${monthNames[date.getMonth()]} ${date.getDate()} - ${monthNames[endDate.getMonth()]} ${endDate.getDate()}`;
+            }
+            return 'Tuần này';
+        }
+        return String(this.currentYear);
+    },
+    navigateHeatmap(direction) {
+        if (this.currentView === 'month') {
+            this.currentMonth += direction;
+            if (this.currentMonth < 0) {
+                this.currentMonth = 11;
+                this.currentYear--;
+            } else if (this.currentMonth > 11) {
+                this.currentMonth = 0;
+                this.currentYear++;
+            }
+            generateDynamicHeatmap('month', this.currentYear, this.currentMonth);
+        } else if (this.currentView === 'week') {
+            if (!this.currentWeekStart) {
+                const today = new Date();
+                const dayOfWeek = today.getDay();
+                const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+                const weekStart = new Date(today);
+                weekStart.setDate(diff);
+                this.currentWeekStart = weekStart.toISOString().split('T')[0];
+            }
+            const weekStart = new Date(this.currentWeekStart);
+            weekStart.setDate(weekStart.getDate() + (direction * 7));
+            this.currentWeekStart = weekStart.toISOString().split('T')[0];
+            generateDynamicHeatmap('week', null, null, this.currentWeekStart);
+        } else if (this.currentView === 'year') {
+            this.currentYear += direction;
+            generateDynamicHeatmap('year', this.currentYear);
+        }
+    },
+    initView() {
+        if (this.currentView === 'year') {
+            this.currentYear = new Date().getFullYear();
+        } else if (this.currentView === 'month') {
+            const today = new Date();
+            this.currentMonth = today.getMonth();
+            this.currentYear = today.getFullYear();
+        } else if (this.currentView === 'week') {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            const weekStart = new Date(today);
+            weekStart.setDate(diff);
+            this.currentWeekStart = weekStart.toISOString().split('T')[0];
+        }
+    }
+}">
     <div class="post-heatmap-header">
+        <div class="post-heatmap-title-section">
         <h3 class="post-heatmap-title">
             <i icon-name="calendar"></i>
             Hoạt động đăng bài
         </h3>
+        </div>
         <div class="post-heatmap-stats">
-            <span class="heatmap-stat">
+            <span class="heatmap-stat" id="heatmap-total-days">
                 <strong>{{ postHeatmap.totalDays }}</strong> ngày
             </span>
             <span class="heatmap-stat">
@@ -19,27 +91,136 @@
         </div>
     </div>
     
+    {# Today's Stats Section #}
+    {% if postHeatmap.todayStats %}
+    <div class="today-stats-section">
+        <h3 class="today-stats-title">Thống kê hôm nay</h3>
+        <div class="today-stats-cards">
+            <div class="today-stat-card">
+                <div class="stat-label">ĐÃ ĐỌC</div>
+                <div class="stat-value">{{ postHeatmap.todayStats.studied }} bài</div>
+            </div>
+            <div class="today-stat-card">
+                <div class="stat-label">THỜI GIAN</div>
+                <div class="stat-value">{{ postHeatmap.todayStats.time | round(1) }} phút</div>
+            </div>
+            <div class="today-stat-card">
+                <div class="stat-label">TỐC ĐỘ</div>
+                <div class="stat-value">
+                    {% if postHeatmap.todayStats.pace > 0 %}
+                        {% set paceMinutes = postHeatmap.todayStats.pace / 60 %}
+                        {{ paceMinutes | round(1) }} phút/bài
+                    {% else %}
+                        0.0 phút/bài
+                    {% endif %}
+                </div>
+            </div>
+            <div class="today-stat-card">
+                <div class="stat-label">DUY TRÌ</div>
+                <div class="stat-value">{{ postHeatmap.todayStats.retention }}%</div>
+                <div class="stat-stars">
+                    {% set retentionRatio = postHeatmap.todayStats.retention / 20 %}
+                    {% set filledStars = retentionRatio | round(0, 'floor') %}
+                    {% for i in range(0, 5) %}
+                        {% if i < filledStars %}
+                            <i icon-name="star" class="star-filled"></i>
+                        {% else %}
+                            <i icon-name="star" class="star-empty"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
     <div class="post-heatmap-wrapper">
-        <div class="post-heatmap-months">
-            {% set months = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"] %}
-            {% for i in range(0, 12) %}
-            <span class="heatmap-month-label"></span>
-            {% endfor %}
+        <div class="post-heatmap-activity-header">
+            <div class="activity-title-section">
+                <h3 class="activity-title">Hoạt động</h3>
+                
+                {# Navigation controls - hiển thị cho tất cả views #}
+                <div class="heatmap-navigation">
+                    <button 
+                        class="heatmap-nav-btn" 
+                        @click="navigateHeatmap(-1)"
+                        title="Trước">
+                        <i icon-name="chevron-left"></i>
+                    </button>
+                    <div class="heatmap-nav-label" x-text="getCurrentPeriodLabel()"></div>
+                    <button 
+                        class="heatmap-nav-btn" 
+                        @click="navigateHeatmap(1)"
+                        title="Tiếp theo">
+                        <i icon-name="chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="activity-right-section">
+                {% if postHeatmap.streak %}
+                <span class="activity-streak">{{ postHeatmap.streak }} ngày liên tiếp</span>
+                {% else %}
+                <span class="activity-streak">0 ngày liên tiếp</span>
+                {% endif %}
+                
+                <div class="post-heatmap-view-controls activity-controls">
+                <button 
+                    class="heatmap-view-btn" 
+                    :class="{ active: currentView === 'year' }"
+                    @click="currentView = 'year'; currentYear = new Date().getFullYear(); switchHeatmapView('year')"
+                    data-view="year">
+                    Năm
+                </button>
+                    <button 
+                        class="heatmap-view-btn" 
+                        :class="{ active: currentView === 'month' }"
+                        @click="currentView = 'month'; currentMonth = new Date().getMonth(); currentYear = new Date().getFullYear(); switchHeatmapView('month')"
+                        data-view="month">
+                        Tháng
+                    </button>
+                    <button 
+                        class="heatmap-view-btn" 
+                        :class="{ active: currentView === 'week' }"
+                        @click="const today = new Date(); const dayOfWeek = today.getDay(); const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); const weekStart = new Date(today.setDate(diff)); currentView = 'week'; currentWeekStart = weekStart.toISOString().split('T')[0]; switchHeatmapView('week')"
+                        data-view="week">
+                        Tuần
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="post-heatmap-months" id="heatmap-months" x-show="currentView !== 'week'" style="display: block;">
+            {# Month labels sẽ được tạo động bởi JavaScript #}
         </div>
         
         <div class="post-heatmap-content">
-            <div class="heatmap-weekdays">
+            {# Weekdays labels - vertical cho year view #}
+            <div class="heatmap-weekdays" id="heatmap-weekdays-year">
                 <span class="weekday-label"></span>
-                <span class="weekday-label">T2</span>
-                <span class="weekday-label"></span>
-                <span class="weekday-label">T4</span>
-                <span class="weekday-label"></span>
-                <span class="weekday-label">T6</span>
-                <span class="weekday-label"></span>
+                <span class="weekday-label">M</span>
+                <span class="weekday-label">T</span>
+                <span class="weekday-label">W</span>
+                <span class="weekday-label">T</span>
+                <span class="weekday-label">F</span>
+                <span class="weekday-label">S</span>
+                <span class="weekday-label">S</span>
             </div>
             
-            <div class="heatmap-grid">
-                {% for week in postHeatmap.weeks %}
+            {# Weekdays labels - horizontal cho month/week view #}
+            <div class="heatmap-weekdays-horizontal" id="heatmap-weekdays-horizontal" style="display: none;">
+                <span class="weekday-h-label">Mon</span>
+                <span class="weekday-h-label">Tue</span>
+                <span class="weekday-h-label">Wed</span>
+                <span class="weekday-h-label">Thu</span>
+                <span class="weekday-h-label">Fri</span>
+                <span class="weekday-h-label">Sat</span>
+                <span class="weekday-h-label">Sun</span>
+            </div>
+            
+            {# Year View #}
+            <div class="heatmap-grid" id="heatmap-year" data-view="year">
+                {% for week in postHeatmap.year.weeks %}
                 <div class="heatmap-week">
                     {% for day in week %}
                     <div 
@@ -57,8 +238,91 @@
                 </div>
                 {% endfor %}
             </div>
+            
+            {# Month View - Calendar layout #}
+            {% if postHeatmap.month %}
+            <div class="heatmap-calendar" id="heatmap-month" data-view="month" style="display: none;">
+                {% for week in postHeatmap.month.weeks %}
+                <div class="heatmap-calendar-week">
+                    {% for day in week %}
+                    <div class="heatmap-calendar-day" 
+                         data-date="{{ day.date }}"
+                         data-count="{{ day.count }}"
+                         @mouseenter="selectedDate = '{{ day.date }}'; selectedCount = {{ day.count }}"
+                         @mouseleave="selectedDate = null; selectedCount = null">
+                        <div class="calendar-day-number">{{ day.date | date('%d') | int }}</div>
+                        <div class="calendar-day-cell intensity-{{ day.intensity }}{% if day.isEmpty %} empty{% endif %}">
+                            {% if day.count > 0 %}
+                            <span class="calendar-day-count">{{ day.count }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {# Week View - Calendar layout #}
+            {% if postHeatmap.week %}
+            <div class="heatmap-calendar" id="heatmap-week" data-view="week" style="display: none;">
+                {# Chỉ hiển thị tuần đầu tiên (1 tuần) #}
+                {% set firstWeek = postHeatmap.week.weeks[0] %}
+                {% if firstWeek %}
+                <div class="heatmap-calendar-week">
+                    {% for day in firstWeek %}
+                    <div class="heatmap-calendar-day" 
+                         data-date="{{ day.date }}"
+                         data-count="{{ day.count }}"
+                         @mouseenter="selectedDate = '{{ day.date }}'; selectedCount = {{ day.count }}"
+                         @mouseleave="selectedDate = null; selectedCount = null">
+                        <div class="calendar-day-number">{{ day.date | date('%d') | int }}</div>
+                        <div class="calendar-day-cell intensity-{{ day.intensity }}{% if day.isEmpty %} empty{% endif %}">
+                            {% if day.count > 0 %}
+                            <span class="calendar-day-count">{{ day.count }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            {# Dynamic heatmap container for navigation #}
+            <div class="heatmap-calendar" id="heatmap-dynamic" data-view="dynamic" style="display: none;"></div>
         </div>
     </div>
+    
+    {# Store data for JavaScript #}
+    <script type="application/json" id="heatmap-data">
+    {
+        "year": {
+            "totalDays": {{ postHeatmap.year.totalDays }},
+            "maxCount": {{ postHeatmap.year.maxCount }}
+        }{% if postHeatmap.month %},
+        "month": {
+            "totalDays": {{ postHeatmap.month.totalDays }},
+            "maxCount": {{ postHeatmap.month.maxCount }}
+        }{% endif %}{% if postHeatmap.week %},
+        "week": {
+            "totalDays": {{ postHeatmap.week.totalDays }},
+            "maxCount": {{ postHeatmap.week.maxCount }}
+        }{% endif %}
+    }
+    </script>
+    
+    {# Store notes data for dynamic heatmap generation #}
+    <script type="application/json" id="notes-data">
+    [
+        {% for note in collections.note %}
+        {
+            "date": "{{ note.date | date('%Y-%m-%d') if note.date else '' }}",
+            "updated": "{{ note.data.updated | date('%Y-%m-%d') if note.data.updated else '' }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]
+    </script>
     
     <div class="post-heatmap-footer">
         <div class="heatmap-legend">
@@ -83,17 +347,125 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Tính toán và hiển thị tháng labels
-    const heatmapGrid = document.querySelector('.heatmap-grid');
+    const heatmapData = JSON.parse(document.getElementById('heatmap-data')?.textContent || '{}');
+    let currentActiveView = 'year'; // Lưu view đang active
+    
+    // Function để tính toán kích thước cho calendar layout (month/week)
+    function calculateCalendarSize(view) {
+        const calendarGrid = view === 'dynamic' 
+            ? document.getElementById('heatmap-dynamic')
+            : document.querySelector(`#heatmap-${view}`);
+        if (!calendarGrid) return;
+        
+        const weeks = calendarGrid.querySelectorAll('.heatmap-calendar-week');
+        if (weeks.length === 0) return;
+        
+        const wrapper = document.querySelector('.post-heatmap-wrapper');
+        if (!wrapper) return;
+        
+        const wrapperWidth = wrapper.getBoundingClientRect().width;
+        const gap = 8;
+        const dayWidth = Math.floor((wrapperWidth - (6 * gap)) / 7);
+        
+        weeks.forEach(week => {
+            const days = week.querySelectorAll('.heatmap-calendar-day');
+            days.forEach(day => {
+                day.style.width = `${dayWidth}px`;
+            });
+        });
+    }
+    
+    // Function để tính toán và cập nhật kích thước cells
+    function calculateCellSize(view) {
+        const heatmapGrid = view === 'dynamic' 
+            ? document.getElementById('heatmap-dynamic')
+            : document.querySelector(`#heatmap-${view}`);
     if (!heatmapGrid) return;
     
-    const monthLabels = document.querySelectorAll('.heatmap-month-label');
-    const weeks = document.querySelectorAll('.heatmap-week');
+        const weeks = heatmapGrid.querySelectorAll('.heatmap-week');
+        if (weeks.length === 0) return;
+        
+        const monthsContainer = document.getElementById('heatmap-months');
+        const heatmapContent = document.querySelector('.post-heatmap-content');
+        const weekdaysContainer = document.querySelector('.heatmap-weekdays');
+        const heatmapWrapper = document.querySelector('.post-heatmap-wrapper');
+        
+        if (!monthsContainer || !heatmapContent || !heatmapWrapper) return;
+        
+        // Lấy chiều rộng thực tế của wrapper (container chính)
+        const wrapperRect = heatmapWrapper.getBoundingClientRect();
+        const wrapperWidth = wrapperRect.width;
+        
+        // Kích thước cố định cho cells (12px)
+        const cellSize = 12;
+        const cellGap = 2;
+        const weekWidth = (cellSize + cellGap) * 7 - cellGap; // 7 cells per week = 98px
+        
+        // Cập nhật width cho mỗi week để đảm bảo đồng nhất
+        weeks.forEach(week => {
+            week.style.width = `${weekWidth}px`;
+            week.style.minWidth = `${weekWidth}px`;
+        });
+        
+        // Cập nhật month labels để căn chỉnh với weeks
+        // Mỗi month label sẽ có width tương ứng với số weeks trong tháng đó
+        const monthLabels = monthsContainer.querySelectorAll('.heatmap-month-label');
+        monthLabels.forEach(label => {
+            // Width sẽ được tính tự động bởi flex: 1
+            label.style.flex = '1 1 0';
+        });
+        
+        // Cập nhật kích thước weekday labels để căn chỉnh với rows
+        const weekdayLabels = document.querySelectorAll('.weekday-label');
+        weekdayLabels.forEach((label, index) => {
+            if (index === 0) {
+                label.style.height = '20px'; // Space cho month labels
+                label.style.minHeight = '20px';
+            } else {
+                label.style.height = `${cellSize + cellGap}px`;
+                label.style.minHeight = `${cellSize + cellGap}px`;
+            }
+        });
+    }
     
-    if (weeks.length === 0 || monthLabels.length === 0) return;
-    
-    // Tính số tuần trong mỗi tháng
-    const monthPositions = {};
+    // Function để cập nhật tháng labels
+    function updateMonthLabels(view) {
+        const heatmapGrid = view === 'dynamic' 
+            ? document.getElementById('heatmap-dynamic')
+            : document.querySelector(`#heatmap-${view}`);
+        if (!heatmapGrid) return;
+        
+        const monthsContainer = document.getElementById('heatmap-months');
+        const weeks = heatmapGrid.querySelectorAll('.heatmap-week');
+        
+        // Ẩn months container trong week view
+        if (view === 'week' || (view === 'dynamic' && weeks.length <= 1)) {
+            if (monthsContainer) {
+                monthsContainer.style.display = 'none';
+            }
+            calculateCellSize(view);
+            return;
+        }
+        
+        // Hiển thị months container cho year và month view
+        if (monthsContainer) {
+            monthsContainer.style.display = 'grid';
+        }
+        
+        if (weeks.length === 0) return;
+        
+        // Xóa tất cả labels cũ
+        monthsContainer.innerHTML = '';
+        
+        // Tạo đủ số labels cho tất cả các tuần (trống hoặc có text)
+        for (let i = 0; i < weeks.length; i++) {
+            const label = document.createElement('span');
+            label.className = 'heatmap-month-label';
+            monthsContainer.appendChild(label);
+        }
+        
+        // Tính số tuần trong mỗi tháng và cập nhật labels
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     let currentMonth = -1;
     
     weeks.forEach((week, weekIndex) => {
@@ -105,20 +477,295 @@ document.addEventListener('DOMContentLoaded', function() {
                 const month = date.getMonth();
                 
                 if (month !== currentMonth) {
-                    monthPositions[month] = weekIndex;
+                        // Cập nhật label cho tháng mới
+                        const labels = monthsContainer.querySelectorAll('.heatmap-month-label');
+                        if (labels[weekIndex]) {
+                            labels[weekIndex].textContent = monthNames[month];
+                        }
                     currentMonth = month;
                 }
             }
         }
     });
     
-    // Hiển thị tháng labels
-    const monthNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
-    monthLabels.forEach((label, index) => {
-        if (monthPositions[index] !== undefined) {
-            label.textContent = monthNames[index];
-            label.style.gridColumn = monthPositions[index] + 1;
+        // Tính toán kích thước cells
+        calculateCellSize(view);
+    }
+    
+    // Helper functions để format và parse dates
+    function formatDateKey(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    function parseDateKey(dateKey) {
+        const [year, month, day] = dateKey.split('-').map(Number);
+        return new Date(year, month - 1, day);
+    }
+    
+    // Function để tạo heatmap động
+    window.generateDynamicHeatmap = function(view, year, month, weekStart) {
+        const notesData = JSON.parse(document.getElementById('notes-data')?.textContent || '[]');
+        const dynamicGrid = document.getElementById('heatmap-dynamic');
+        if (!dynamicGrid) return;
+        
+        // Ẩn tất cả grids
+        document.querySelectorAll('.heatmap-grid').forEach(grid => {
+            grid.style.display = 'none';
+        });
+        
+        // Tính toán date range
+        let startDate, endDate;
+        if (view === 'month') {
+            startDate = new Date(year, month, 1);
+            endDate = new Date(year, month + 1, 0);
+        } else if (view === 'week') {
+            startDate = new Date(weekStart);
+            endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 6);
+        } else if (view === 'year') {
+            startDate = new Date(year, 0, 1);
+            endDate = new Date(year, 11, 31);
         }
+        
+        // Tạo date map
+        const dateMap = new Map();
+        const currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+            dateMap.set(formatDateKey(currentDate), 0);
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        // Đếm posts
+        notesData.forEach(note => {
+            const noteDate = note.updated || note.date;
+            if (!noteDate) return;
+            const date = new Date(noteDate);
+            if (date >= startDate && date <= endDate) {
+                const dateKey = formatDateKey(date);
+                dateMap.set(dateKey, (dateMap.get(dateKey) || 0) + 1);
+            }
+        });
+        
+        // Tính maxCount
+        let maxCount = 0;
+        dateMap.forEach(count => {
+            if (count > maxCount) maxCount = count;
+        });
+        
+        // Tạo heatmap data
+        const heatmapData = [];
+        dateMap.forEach((count, dateKey) => {
+            const date = parseDateKey(dateKey);
+            const ratio = maxCount > 0 ? count / maxCount : 0;
+            let intensity = 0;
+            if (ratio > 0.75) intensity = 4;
+            else if (ratio > 0.5) intensity = 3;
+            else if (ratio > 0.25) intensity = 2;
+            else if (ratio > 0) intensity = 1;
+            
+            heatmapData.push({
+                date: dateKey,
+                dateObj: date,
+                count: count,
+                intensity: intensity
+            });
+        });
+        
+        heatmapData.sort((a, b) => a.dateObj - b.dateObj);
+        
+        // Group by weeks
+        const weeks = [];
+        let currentWeek = [];
+        let currentWeekStart = null;
+        
+        heatmapData.forEach(item => {
+            const date = item.dateObj;
+            const dayOfWeek = date.getDay();
+            
+            if (dayOfWeek === 0 || currentWeekStart === null) {
+                if (currentWeek.length > 0) {
+                    weeks.push(currentWeek);
+                }
+                currentWeek = [];
+                currentWeekStart = date;
+            }
+            
+            // Fill empty days
+            if (currentWeek.length > 0) {
+                const lastDate = currentWeek[currentWeek.length - 1].dateObj;
+                const daysDiff = Math.floor((date - lastDate) / (1000 * 60 * 60 * 24));
+                for (let i = 1; i < daysDiff; i++) {
+                    const emptyDate = new Date(lastDate);
+                    emptyDate.setDate(emptyDate.getDate() + i);
+                    currentWeek.push({
+                        date: formatDateKey(emptyDate),
+                        dateObj: emptyDate,
+                        count: 0,
+                        intensity: 0,
+                        isEmpty: true
+                    });
+                }
+            }
+            
+            currentWeek.push(item);
+        });
+        
+        if (currentWeek.length > 0) {
+            weeks.push(currentWeek);
+        }
+        
+        // Fill weeks to 7 days
+        weeks.forEach(week => {
+            while (week.length < 7) {
+                const lastDate = week[week.length - 1]?.dateObj || new Date();
+                const nextDate = new Date(lastDate);
+                nextDate.setDate(nextDate.getDate() + 1);
+                week.push({
+                    date: formatDateKey(nextDate),
+                    dateObj: nextDate,
+                    count: 0,
+                    intensity: 0,
+                    isEmpty: true
+                });
+            }
+        });
+        
+        // Render heatmap - sử dụng calendar layout cho month/week
+        dynamicGrid.innerHTML = '';
+        if (view === 'month' || view === 'week') {
+            // Calendar layout cho month và week
+            // Week view chỉ hiển thị tuần đầu tiên (1 tuần)
+            const weeksToRender = view === 'week' ? weeks.slice(0, 1) : weeks;
+            
+            weeksToRender.forEach(week => {
+                const weekDiv = document.createElement('div');
+                weekDiv.className = 'heatmap-calendar-week';
+                week.forEach(day => {
+                    const dayDate = parseDateKey(day.date);
+                    const dayNumber = dayDate.getDate();
+                    
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = 'heatmap-calendar-day';
+                    dayDiv.setAttribute('data-date', day.date);
+                    dayDiv.setAttribute('data-count', day.count);
+                    dayDiv.setAttribute('title', `${day.date}: ${day.count} bài viết`);
+                    
+                    const dayNumberDiv = document.createElement('div');
+                    dayNumberDiv.className = 'calendar-day-number';
+                    dayNumberDiv.textContent = dayNumber;
+                    dayDiv.appendChild(dayNumberDiv);
+                    
+                    const dayCellDiv = document.createElement('div');
+                    dayCellDiv.className = `calendar-day-cell intensity-${day.intensity}${day.isEmpty ? ' empty' : ''}`;
+                    if (day.count > 0) {
+                        const countSpan = document.createElement('span');
+                        countSpan.className = 'calendar-day-count';
+                        countSpan.textContent = day.count;
+                        dayCellDiv.appendChild(countSpan);
+                    }
+                    dayDiv.appendChild(dayCellDiv);
+                    
+                    weekDiv.appendChild(dayDiv);
+                });
+                dynamicGrid.appendChild(weekDiv);
+            });
+            dynamicGrid.style.display = 'block';
+        } else {
+            // Grid layout cho year view
+            weeks.forEach(week => {
+                const weekDiv = document.createElement('div');
+                weekDiv.className = 'heatmap-week';
+                week.forEach(day => {
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = `heatmap-day intensity-${day.intensity}${day.isEmpty ? ' empty' : ''}`;
+                    dayDiv.setAttribute('data-date', day.date);
+                    dayDiv.setAttribute('data-count', day.count);
+                    dayDiv.setAttribute('title', `${day.date}: ${day.count} bài viết`);
+                    if (day.count > 0) {
+                        const countSpan = document.createElement('span');
+                        countSpan.className = 'heatmap-day-count';
+                        countSpan.textContent = day.count;
+                        dayDiv.appendChild(countSpan);
+                    }
+                    weekDiv.appendChild(dayDiv);
+                });
+                dynamicGrid.appendChild(weekDiv);
+            });
+            dynamicGrid.style.display = 'flex';
+        }
+        
+        currentActiveView = 'dynamic';
+        
+        // Cập nhật weekdays display
+        const weekdaysVertical = document.getElementById('heatmap-weekdays-year');
+        const weekdaysHorizontal = document.getElementById('heatmap-weekdays-horizontal');
+        if (view === 'month' || view === 'week') {
+            if (weekdaysVertical) weekdaysVertical.style.display = 'none';
+            if (weekdaysHorizontal) weekdaysHorizontal.style.display = 'flex';
+        } else {
+            if (weekdaysVertical) weekdaysVertical.style.display = 'flex';
+            if (weekdaysHorizontal) weekdaysHorizontal.style.display = 'none';
+        }
+        
+        updateMonthLabels('dynamic');
+        if (view === 'month' || view === 'week') {
+            calculateCalendarSize(view);
+        } else {
+            calculateCellSize('dynamic');
+        }
+    };
+    
+    // Function để chuyển đổi view
+    window.switchHeatmapView = function(view) {
+        currentActiveView = view;
+        
+        // Ẩn tất cả views
+        document.querySelectorAll('.heatmap-grid, .heatmap-calendar').forEach(grid => {
+            grid.style.display = 'none';
+        });
+        
+        // Cập nhật weekdays display
+        const weekdaysVertical = document.getElementById('heatmap-weekdays-year');
+        const weekdaysHorizontal = document.getElementById('heatmap-weekdays-horizontal');
+        
+        if (view === 'month' || view === 'week') {
+            if (weekdaysVertical) weekdaysVertical.style.display = 'none';
+            if (weekdaysHorizontal) weekdaysHorizontal.style.display = 'flex';
+        } else {
+            if (weekdaysVertical) weekdaysVertical.style.display = 'flex';
+            if (weekdaysHorizontal) weekdaysHorizontal.style.display = 'none';
+        }
+        
+        // Khởi tạo với period hiện tại cho tất cả views
+        if (view === 'month') {
+            const today = new Date();
+            generateDynamicHeatmap('month', today.getFullYear(), today.getMonth());
+        } else if (view === 'week') {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            const weekStart = new Date(today);
+            weekStart.setDate(diff);
+            generateDynamicHeatmap('week', null, null, formatDateKey(weekStart));
+        } else if (view === 'year') {
+            const today = new Date();
+            generateDynamicHeatmap('year', today.getFullYear());
+        }
+    };
+    
+    // Khởi tạo với year view
+    updateMonthLabels('year');
+    
+    // Xử lý resize để tự động điều chỉnh kích thước
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            calculateCellSize(currentActiveView);
+        }, 250);
     });
 });
 </script>

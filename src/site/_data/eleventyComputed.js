@@ -3,7 +3,7 @@ const { getFileTree } = require("../../helpers/filetreeUtils");
 const { userComputed } = require("../../helpers/userUtils");
 const { getNextPreviousNotes } = require("../../helpers/navigationUtils");
 const { getRelatedPosts } = require("../../helpers/relatedPosts");
-const { generatePostHeatmap, generateMonthHeatmap, generateWeekHeatmap, groupByWeeks } = require("../../helpers/postHeatmap");
+const { generatePostHeatmap, generateMonthHeatmap, generateWeekHeatmap, groupByWeeks, calculateTodayStatsAndStreak } = require("../../helpers/postHeatmap");
 
 // Cache cho graph và filetree để tránh tính toán lại
 const graphCache = new Map();
@@ -94,6 +94,9 @@ module.exports = {
       weekWeeks = groupByWeeks(weekData.data);
     }
     
+    // Tính today stats và streak
+    const { todayStats, streak } = calculateTodayStatsAndStreak(notes);
+    
     return {
       year: {
         weeks: yearWeeks,
@@ -121,7 +124,10 @@ module.exports = {
       maxCount: yearData.maxCount,
       totalDays: yearData.totalDays,
       startDate: yearData.startDate,
-      endDate: yearData.endDate
+      endDate: yearData.endDate,
+      // Today stats và streak
+      todayStats: todayStats,
+      streak: streak
     };
   }
 };

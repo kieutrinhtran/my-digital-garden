@@ -2,11 +2,11 @@
   Component: Navbar
   Description: Main navigation bar component with horizontal menu and dropdown
   Props:
-    - settings.dgHomeLink: Show/hide home link
+    - settings.dgHomeLink: Show/hide home link (default: true)
     - settings.dgEnableSearch: Show/hide search button
     - settings.dgShowFileTree: If true, shows mobile menu toggle (used in filetree mode)
 #}
-{%if settings.dgHomeLink === true%}
+{%if settings.dgHomeLink !== false%}
     <nav class="navbar" x-data="{ mobileMenuOpen: false }">
         <div class="navbar-inner">
             {% if settings.dgShowFileTree === true %}
@@ -15,6 +15,10 @@
             {% for imp in dynamics.filetree.beforeTitle %}
                 {% include imp %}
             {% endfor %}
+            {# Home Button #}
+            <a href="/" class="navbar-home-btn" title="Về trang chủ">
+                <i icon-name="home"></i>
+            </a>
             <a href="/" class="navbar-logo">
                 <h1>{{meta.siteName}}</h1>
             </a>

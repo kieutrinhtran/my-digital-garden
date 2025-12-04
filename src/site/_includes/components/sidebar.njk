@@ -1,54 +1,44 @@
 <aside class="sidebar-wrapper"
        x-data="{ isOpen: true }"
        x-init="setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 100)">
-      <div class="sidebar" :class="{ 'sidebar-collapsed': !isOpen }">
-            <div class="sidebar-container" :class="{ 'sidebar-container-collapsed': !isOpen }">
-                  {# Icon toggle khi collapsed #}
-                  <div class="sidebar-toggle-icon-wrapper" x-show="!isOpen" x-transition>
-                      <i icon-name="panel-right-open" 
-                         @click="isOpen = true" 
-                         class="sidebar-toggle-icon svg-icon"
-                         title="Mở sidebar"
-                         x-init="setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50)"></i>
-                  </div>
-                  
-                  {# Nội dung sidebar khi mở #}
-                  <div x-show="isOpen" x-transition>
-                      <div class="sidebar-header">
-                          <button class="sidebar-toggle-btn" 
-                                  @click="isOpen = false"
-                                  aria-label="Close sidebar"
-                                  title="Đóng sidebar">
-                              <i icon-name="x"></i>
-                          </button>
-                      </div>
-                  {% for imp in dynamics.sidebar.top %}
-                        {% include imp %}
-                  {% endfor %}
-                  {# Only show filetree in right sidebar if left sidebar filetree is not shown #}
-                  {%if settings.dgShowFileTree !== true%}
-                        <div class="filetree-in-sidebar">
-                              <div class="filetree-title-container">
-                                    <div class="filetree-title">Notes</div>
-                              </div>
-                              <div class="filetree-container">
-                                    {% from "components/filetreeMenuItem.njk" import menuItem %}
-                                    <div class="folder" x-data="{isOpen: true}">
-                                          {%- for fileOrFolderName, fileOrFolder in filetree -%}
-                                                {{menuItem(fileOrFolderName, fileOrFolder, 0, fileOrFolderName)}}
-                                          {%- endfor -%}
-                                    </div>
-                              </div>
-                        </div>
-                  {%endif%}
-
-                  {%if settings.dgShowLocalGraph === true%}
-                        {%include "components/graphScript.njk"%}
-                  {%endif%}
-                      {% for imp in dynamics.sidebar.bottom %}
-                            {% include imp %}
-                      {% endfor %}
-                  </div>
+    <div class="sidebar" :class="{ 'sidebar-collapsed': !isOpen }">
+        <div class="sidebar-container" :class="{ 'sidebar-container-collapsed': !isOpen }">
+            {# Icon toggle khi collapsed #}
+            <div class="sidebar-toggle-icon-wrapper" x-show="!isOpen" x-transition>
+                <i icon-name="panel-right-open" 
+                   @click="isOpen = true" 
+                   class="sidebar-toggle-icon svg-icon"
+                   title="Mở sidebar"
+                   x-init="setTimeout(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); }, 50)"></i>
             </div>
-      </div>
+            
+            {# Nội dung sidebar khi mở #}
+            <div x-show="isOpen" x-transition>
+                <div class="sidebar-header">
+                    <h3 class="sidebar-title">
+                        <i icon-name="layout-sidebar"></i>
+                        Sidebar
+                    </h3>
+                    <button class="sidebar-toggle-btn" 
+                            @click="isOpen = false"
+                            aria-label="Close sidebar"
+                            title="Đóng sidebar">
+                        <i icon-name="x"></i>
+                    </button>
+                </div>
+                
+                {% for imp in dynamics.sidebar.top %}
+                    {% include imp %}
+                {% endfor %}
+
+                {%if settings.dgShowLocalGraph === true%}
+                    {%include "components/graphScript.njk"%}
+                {%endif%}
+                
+                {% for imp in dynamics.sidebar.bottom %}
+                    {% include imp %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </aside>

@@ -2,14 +2,41 @@
 permalink: /
 layout: layouts/index.njk
 title: Digital Garden
-dgShowFileTree: true
+dgHomeLink: true
+dgShowFileTree: false
 dgShowLocalGraph: true
 dgShowToc: true
 dgShowBacklinks: true
 ---
 
-<div class="home-content">
-  <h1>Chào mừng đến Digital Garden của tôi! 🏠</h1>
-  <p>Đây là nơi tôi lưu trữ và chia sẻ kiến thức của mình.</p>
+<div class="home-hero">
+  <div class="home-hero-content">
+    <h1 class="home-hero-title">
+      <i icon-name="sparkles"></i>
+      Chào mừng đến Digital Garden
+    </h1>
+    <p class="home-hero-description">
+      Nơi tôi lưu trữ, tổ chức và chia sẻ kiến thức của mình. 
+      Khám phá các bài viết, ý tưởng và suy nghĩ được kết nối với nhau.
+    </p>
+    <div class="home-hero-stats">
+      {% set totalNotes = collections.note | length %}
+      {% set totalTags = collections.allTags | length %}
+      <div class="home-stat-item">
+        <i icon-name="file-text"></i>
+        <span class="home-stat-value">{{ totalNotes }}</span>
+        <span class="home-stat-label">Bài viết</span>
+      </div>
+      <div class="home-stat-item">
+        <i icon-name="tag"></i>
+        <span class="home-stat-value">{{ totalTags }}</span>
+        <span class="home-stat-label">Tags</span>
+      </div>
+      <div class="home-stat-item">
+        <i icon-name="git-branch"></i>
+        <span class="home-stat-value">{{ graph.nodes | length if graph else 0 }}</span>
+        <span class="home-stat-label">Kết nối</span>
+      </div>
+    </div>
+  </div>
 </div>
-

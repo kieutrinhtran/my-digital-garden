@@ -13,11 +13,8 @@
   <body class="theme-{{meta.baseTheme}} markdown-preview-view markdown-rendered markdown-preview-section {{meta.bodyClasses}}">
     {%include "components/notegrowthhistory.njk"%}
     
-    {% if settings.dgShowFileTree !== true %}
-      {%include "components/navbar.njk"%}
-    {% else %}
-      {%include "components/filetree.njk"%}
-    {% endif %}
+    {# Always show navbar #}
+    {%include "components/navbar.njk"%}
 
     {% if settings.dgEnableSearch === true %}
       {%include "components/searchContainer.njk"%}
@@ -27,64 +24,74 @@
     {% include "components/tocLeft.njk" %}
 
     <main class="content cm-s-obsidian {{contentClasses}}">
-      <header class="content-header">
-        {% if settings.dgShowInlineTitle === true %}
-          <h1 data-note-icon="{% if noteIcon %}{{noteIcon}}{% else %}{{meta.noteIconsSettings.default}}{% endif %}">
-            {% if title %}{{ title }}{% else %}{{ page.fileSlug }}{% endif %}
-          </h1>
-        {% endif %}
-
-        <div class="header-meta">
-          {% if settings.dgShowTags === true and tags %}
-            <div class="header-tags">
-              {% for tag in tags %}
-                {% if tag != 'gardenEntry' and tag !='note' %}
-                  <a class="tag" onclick="toggleTagSearch(this)">
-                    #{{tag}}
-                  </a>
-                {% endif %}
-              {% endfor %}
-            </div>
+      {# Homepage: Skip header, show content directly #}
+      {% if page.url == "/" %}
+        <article class="content-body">
+          {% if content %}
+            {{ content | hideDataview | taggify | link | safe}}
           {% endif %}
+        </article>
+      {% else %}
+        {# Other pages: Show header #}
+        <header class="content-header">
+          {% if settings.dgShowInlineTitle === true %}
+            <h1 data-note-icon="{% if noteIcon %}{{noteIcon}}{% else %}{{meta.noteIconsSettings.default}}{% endif %}">
+              {% if title %}{{ title }}{% else %}{{ page.fileSlug }}{% endif %}
+            </h1>
+          {% endif %}
+
+          <div class="header-meta">
+            {% if settings.dgShowTags === true and tags %}
+              <div class="header-tags">
+                {% for tag in tags %}
+                  {% if tag != 'gardenEntry' and tag !='note' %}
+                    <a class="tag" onclick="toggleTagSearch(this)">
+                      #{{tag}}
+                    </a>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+            
+            {%- if meta.timestampSettings.showCreated or meta.timestampSettings.showUpdated -%}
+              <div class="timestamps">
+                {%- if meta.timestampSettings.showCreated and created -%}
+                  <div class="timestamp-item">
+                    <i icon-name="calendar-plus"></i>
+                    <span class="human-date" data-date="{{created}}"></span>
+                  </div>
+                {%- endif -%}
+                {%- if meta.timestampSettings.showUpdated and updated -%}
+                  <div class="timestamp-item">
+                    <i icon-name="calendar-clock"></i>
+                    <span class="human-date" data-date="{{updated}}"></span>
+                  </div>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          </div>
           
-          {%- if meta.timestampSettings.showCreated or meta.timestampSettings.showUpdated -%}
-            <div class="timestamps">
-              {%- if meta.timestampSettings.showCreated and created -%}
-                <div class="timestamp-item">
-                  <i icon-name="calendar-plus"></i>
-                  <span class="human-date" data-date="{{created}}"></span>
-                </div>
-              {%- endif -%}
-              {%- if meta.timestampSettings.showUpdated and updated -%}
-                <div class="timestamp-item">
-                  <i icon-name="calendar-clock"></i>
-                  <span class="human-date" data-date="{{updated}}"></span>
-                </div>
-              {%- endif -%}
-            </div>
-          {%- endif -%}
-        </div>
+          {% for imp in dynamics.common.header %}
+            {% include imp %}
+          {% endfor %}
+          {% for imp in dynamics.index.header %}
+            {% include imp %}
+          {% endfor %}
+        </header>
         
-        {% for imp in dynamics.common.header %}
+        {% for imp in dynamics.common.beforeContent %}
           {% include imp %}
         {% endfor %}
-        {% for imp in dynamics.index.header %}
+        {% for imp in dynamics.index.beforeContent %}
           {% include imp %}
         {% endfor %}
-      </header>
-      
-      {% for imp in dynamics.common.beforeContent %}
-        {% include imp %}
-      {% endfor %}
-      {% for imp in dynamics.index.beforeContent %}
-        {% include imp %}
-      {% endfor %}
-      
-      <article class="content-body">
-        {% if content %}
-          {{ content | hideDataview | taggify | link | safe}}
-        {% endif %}
-      </article>
+        
+        <article class="content-body">
+          {% if content %}
+            {{ content | hideDataview | taggify | link | safe}}
+          {% endif %}
+        </article>
+      {% endif %}
       
       {# Posts Gallery #}
       {% include "components/postsGallery.njk" %}
