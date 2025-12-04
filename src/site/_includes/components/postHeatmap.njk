@@ -407,13 +407,8 @@ document.addEventListener('DOMContentLoaded', function() {
             week.style.minWidth = `${weekWidth}px`;
         });
         
-        // Cập nhật month labels để căn chỉnh với weeks
-        // Mỗi month label sẽ có width tương ứng với số weeks trong tháng đó
-        const monthLabels = monthsContainer.querySelectorAll('.heatmap-month-label');
-        monthLabels.forEach(label => {
-            // Width sẽ được tính tự động bởi flex: 1
-            label.style.flex = '1 1 0';
-        });
+        // Month labels đã được tính toán trong updateMonthLabels
+        // Không cần cập nhật lại ở đây
         
         // Cập nhật kích thước weekday labels để căn chỉnh với rows
         const weekdayLabels = document.querySelectorAll('.weekday-label');
@@ -438,18 +433,26 @@ document.addEventListener('DOMContentLoaded', function() {
         const monthsContainer = document.getElementById('heatmap-months');
         const weeks = heatmapGrid.querySelectorAll('.heatmap-week');
         
-        // Ẩn months container trong week view
-        if (view === 'week' || (view === 'dynamic' && weeks.length <= 1)) {
+        // Kiểm tra calendar layout dựa trên content thực tế, không phải container class
+        // Calendar layout có .heatmap-calendar-week, grid layout có .heatmap-week
+        const hasCalendarWeeks = heatmapGrid.querySelectorAll('.heatmap-calendar-week').length > 0;
+        const isCalendarLayout = hasCalendarWeeks || 
+                                 heatmapGrid.id === 'heatmap-month' || 
+                                 heatmapGrid.id === 'heatmap-week';
+        
+        if (view === 'week' || isCalendarLayout || (view === 'dynamic' && weeks.length <= 1 && hasCalendarWeeks)) {
             if (monthsContainer) {
                 monthsContainer.style.display = 'none';
             }
-            calculateCellSize(view);
+            if (!isCalendarLayout) {
+                calculateCellSize(view);
+            }
             return;
         }
         
-        // Hiển thị months container cho year và month view
+        // Hiển thị months container cho year view
         if (monthsContainer) {
-            monthsContainer.style.display = 'grid';
+            monthsContainer.style.display = 'flex';
         }
         
         if (weeks.length === 0) return;
@@ -457,36 +460,69 @@ document.addEventListener('DOMContentLoaded', function() {
         // Xóa tất cả labels cũ
         monthsContainer.innerHTML = '';
         
-        // Tạo đủ số labels cho tất cả các tuần (trống hoặc có text)
-        for (let i = 0; i < weeks.length; i++) {
-            const label = document.createElement('span');
-            label.className = 'heatmap-month-label';
-            monthsContainer.appendChild(label);
-        }
+        // Tính số tuần trong mỗi tháng và tạo labels
+        // Lấy width của một week để tính toán chính xác
+        const firstWeek = weeks[0];
+        const weekWidth = firstWeek ? (firstWeek.offsetWidth || 98) : 98; // 98px = 7 cells * 12px + 6 gaps * 2px
+        const weekGap = 2; // gap giữa các weeks
         
-        // Tính số tuần trong mỗi tháng và cập nhật labels
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    let currentMonth = -1;
+        let currentMonth = -1;
+        let monthStartWeek = 0;
     
-    weeks.forEach((week, weekIndex) => {
-        const firstDay = week.querySelector('.heatmap-day:not(.empty)');
-        if (firstDay) {
-            const dateStr = firstDay.getAttribute('data-date');
-            if (dateStr) {
-                const date = new Date(dateStr);
-                const month = date.getMonth();
+        weeks.forEach((week, weekIndex) => {
+            // Tìm ngày đầu tiên (có thể là empty hoặc không)
+            let firstDay = week.querySelector('.heatmap-day[data-date]');
+            if (!firstDay) {
+                // Nếu không tìm thấy, thử tìm bất kỳ day nào
+                firstDay = week.querySelector('.heatmap-day');
+            }
+            
+            if (firstDay) {
+                const dateStr = firstDay.getAttribute('data-date');
+                if (dateStr) {
+                    try {
+                        // Parse date consistently using local time via parseDateKey
+                        const date = parseDateKey(dateStr);
+                        if (!isNaN(date.getTime())) {
+                            const month = date.getMonth();
                 
-                if (month !== currentMonth) {
-                        // Cập nhật label cho tháng mới
-                        const labels = monthsContainer.querySelectorAll('.heatmap-month-label');
-                        if (labels[weekIndex]) {
-                            labels[weekIndex].textContent = monthNames[month];
+                            if (month !== currentMonth) {
+                                // Tạo label cho tháng trước đó (nếu có)
+                                if (currentMonth !== -1) {
+                                    const label = document.createElement('span');
+                                    label.className = 'heatmap-month-label';
+                                    label.textContent = monthNames[currentMonth];
+                                    const weekCount = weekIndex - monthStartWeek;
+                                    // Tính width chính xác: số tuần * (width + gap) - gap cuối
+                                    const labelWidth = weekCount * (weekWidth + weekGap) - weekGap;
+                                    label.style.width = `${labelWidth}px`;
+                                    label.style.flex = '0 0 auto';
+                                    monthsContainer.appendChild(label);
+                                }
+                                currentMonth = month;
+                                monthStartWeek = weekIndex;
+                            }
                         }
-                    currentMonth = month;
+                    } catch (e) {
+                        console.warn('Invalid date:', dateStr);
+                    }
                 }
             }
+        });
+        
+        // Thêm label cho tháng cuối cùng
+        if (currentMonth !== -1) {
+            const label = document.createElement('span');
+            label.className = 'heatmap-month-label';
+            label.textContent = monthNames[currentMonth];
+            const weekCount = weeks.length - monthStartWeek;
+            // Tính width chính xác: số tuần * (width + gap) - gap cuối
+            const labelWidth = weekCount * (weekWidth + weekGap) - weekGap;
+            label.style.width = `${labelWidth}px`;
+            label.style.flex = '0 0 auto';
+            monthsContainer.appendChild(label);
         }
-    });
     
         // Tính toán kích thước cells
         calculateCellSize(view);
@@ -516,18 +552,25 @@ document.addEventListener('DOMContentLoaded', function() {
             grid.style.display = 'none';
         });
         
-        // Tính toán date range
+        // Tính toán date range - sử dụng local time nhất quán
         let startDate, endDate;
         if (view === 'month') {
             startDate = new Date(year, month, 1);
+            startDate.setHours(0, 0, 0, 0);
             endDate = new Date(year, month + 1, 0);
+            endDate.setHours(23, 59, 59, 999);
         } else if (view === 'week') {
-            startDate = new Date(weekStart);
+            // Parse weekStart string (YYYY-MM-DD) using local time
+            startDate = parseDateKey(weekStart);
+            startDate.setHours(0, 0, 0, 0);
             endDate = new Date(startDate);
             endDate.setDate(endDate.getDate() + 6);
+            endDate.setHours(23, 59, 59, 999);
         } else if (view === 'year') {
             startDate = new Date(year, 0, 1);
+            startDate.setHours(0, 0, 0, 0);
             endDate = new Date(year, 11, 31);
+            endDate.setHours(23, 59, 59, 999);
         }
         
         // Tạo date map
@@ -538,11 +581,13 @@ document.addEventListener('DOMContentLoaded', function() {
             currentDate.setDate(currentDate.getDate() + 1);
         }
         
-        // Đếm posts
+        // Đếm posts - parse dates consistently using local time
         notesData.forEach(note => {
             const noteDate = note.updated || note.date;
             if (!noteDate) return;
-            const date = new Date(noteDate);
+            // Parse ISO date string (YYYY-MM-DD) as local time, not UTC
+            const date = parseDateKey(noteDate);
+            date.setHours(0, 0, 0, 0);
             if (date >= startDate && date <= endDate) {
                 const dateKey = formatDateKey(date);
                 dateMap.set(dateKey, (dateMap.get(dateKey) || 0) + 1);
@@ -710,11 +755,19 @@ document.addEventListener('DOMContentLoaded', function() {
             if (weekdaysHorizontal) weekdaysHorizontal.style.display = 'none';
         }
         
-        updateMonthLabels('dynamic');
+        // Cập nhật month labels và tính toán kích thước
         if (view === 'month' || view === 'week') {
-            calculateCalendarSize(view);
+            updateMonthLabels('dynamic');
+            // Đợi một chút để DOM cập nhật
+            setTimeout(() => {
+                calculateCalendarSize(view);
+            }, 10);
         } else {
-            calculateCellSize('dynamic');
+            updateMonthLabels('dynamic');
+            // Đợi một chút để DOM cập nhật
+            setTimeout(() => {
+                calculateCellSize('dynamic');
+            }, 10);
         }
     };
     
