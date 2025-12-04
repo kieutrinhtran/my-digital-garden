@@ -79,10 +79,11 @@
                                     </div>
                                     
                                     <div class="post-gallery-card-footer">
-                                        {% if note.date %}
-                                            <time class="post-gallery-card-date" datetime="{{ note.date | date('%Y-%m-%d') }}">
+                                        {% set displayDate = note.data.updated or note.date %}
+                                        {% if displayDate %}
+                                            <time class="post-gallery-card-date" datetime="{{ displayDate | date('%Y-%m-%d') }}">
                                                 <i icon-name="calendar"></i>
-                                                {{ note.date | date('%d/%m/%Y') }}
+                                                {{ displayDate | date('%d/%m/%Y') }}
                                             </time>
                                         {% endif %}
                                     </div>
@@ -158,10 +159,11 @@
                             </div>
                             
                             <div class="post-gallery-card-footer">
-                                {% if note.date %}
-                                    <time class="post-gallery-card-date" datetime="{{ note.date | date('%Y-%m-%d') }}">
+                                {% set displayDate = note.data.updated or note.date %}
+                                {% if displayDate %}
+                                    <time class="post-gallery-card-date" datetime="{{ displayDate | date('%Y-%m-%d') }}">
                                         <i icon-name="calendar"></i>
-                                        {{ note.date | date('%d/%m/%Y') }}
+                                        {{ displayDate | date('%d/%m/%Y') }}
                                     </time>
                                 {% endif %}
                             </div>
@@ -214,10 +216,11 @@
                     </div>
                     
                     <div class="post-gallery-card-footer">
-                        {% if note.date %}
-                            <time class="post-gallery-card-date" datetime="{{ note.date | date('%Y-%m-%d') }}">
+                        {% set displayDate = note.data.updated or note.date %}
+                        {% if displayDate %}
+                            <time class="post-gallery-card-date" datetime="{{ displayDate | date('%Y-%m-%d') }}">
                                 <i icon-name="calendar"></i>
-                                {{ note.date | date('%d/%m/%Y') }}
+                                {{ displayDate | date('%d/%m/%Y') }}
                             </time>
                         {% endif %}
                     </div>
