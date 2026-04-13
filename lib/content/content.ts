@@ -5,7 +5,7 @@ import { remark } from "remark";
 import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
-import { PostDetail, PostFrontmatter, PostSummary, SortMode } from "./types";
+import { NoteFolder, PostDetail, PostFrontmatter, PostSummary, SortMode } from "./types";
 import { slugFromPermalink, toSlug } from "./slug";
 
 const CONTENT_ROOT = path.join(process.cwd(), "src", "site", "notes");
@@ -43,9 +43,13 @@ function parsePostFile(filePath: string): { summary: PostSummary; markdownBody: 
   const date = fm.date || fm.updated || new Date().toISOString();
   const tags = Array.isArray(fm.tags) ? fm.tags : [];
   const views = Number(fm.views || 0);
+  const relative = path.relative(CONTENT_ROOT, filePath);
+  const firstDir = relative.split(path.sep)[0] || "Khac";
+  const folderName = firstDir;
+  const folderSlug = toSlug(firstDir);
 
   return {
-    summary: { slug, title, description, date, tags, views },
+    summary: { slug, title, description, date, tags, views, folderSlug, folderName },
     markdownBody: content,
   };
 }
@@ -61,17 +65,34 @@ function sortPosts(posts: PostSummary[], sort: SortMode): PostSummary[] {
   return copy;
 }
 
-export function getAllPostSummaries(opts?: { q?: string; sort?: SortMode }): PostSummary[] {
+export function getAllPostSummaries(opts?: {
+  q?: string;
+  sort?: SortMode;
+  folder?: string;
+}): PostSummary[] {
   const sort = opts?.sort || "newest";
   const query = (opts?.q || "").trim().toLowerCase();
+  const folder = (opts?.folder || "").trim().toLowerCase();
   const files = scanMarkdownFiles(CONTENT_ROOT);
   const posts = files.map((filePath) => parsePostFile(filePath).summary);
+  const withFolder = folder ? posts.filter((post) => post.folderSlug === folder) : posts;
   const filtered = query
-    ? posts.filter((post) =>
+    ? withFolder.filter((post) =>
         `${post.title} ${post.description}`.toLowerCase().includes(query),
       )
-    : posts;
+    : withFolder;
   return sortPosts(filtered, sort);
+}
+
+export function getTopNoteFolders(): NoteFolder[] {
+  const entries = fs.readdirSync(CONTENT_ROOT, { withFileTypes: true });
+  return entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => ({
+      slug: toSlug(entry.name),
+      name: entry.name,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "vi"));
 }
 
 export async function getPostBySlug(slug: string): Promise<PostDetail | null> {

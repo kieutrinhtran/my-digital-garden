@@ -18,8 +18,15 @@ export type PostSummary = {
   date: string;
   views: number;
   tags: string[];
+  folderSlug: string;
+  folderName: string;
 };
 
 export type PostDetail = PostSummary & {
   contentHtml: string;
+};
+
+export type NoteFolder = {
+  slug: string;
+  name: string;
 };

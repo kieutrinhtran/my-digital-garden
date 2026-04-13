@@ -53,6 +53,10 @@ $RECYCLE.BIN/
 netlify/functions/search/data.json
 netlify/functions/search/index.json
 
+# Generated theme artifacts
+src/site/styles/theme.*.css
+src/site/styles/_theme.*.css
+
 
 # Logs
 *.log
