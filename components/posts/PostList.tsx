@@ -49,7 +49,7 @@ export function PostList({
   return (
     <section className="mx-auto w-full max-w-6xl px-4 py-8">
       <div className="sticky top-4 z-40 mb-4">
-        <nav className="glass-panel flex flex-nowrap items-center gap-2 overflow-x-auto overflow-y-hidden rounded-2xl px-3 py-3">
+        <nav className="glass-panel flex flex-wrap items-center gap-2 rounded-2xl px-3 py-3">
           <Link
             href={createFolderHref("")}
             className={`shrink-0 rounded-full px-3 py-1 text-xs ${
