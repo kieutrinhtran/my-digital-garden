@@ -15,77 +15,27 @@ permalink: "notes/{{ page.fileSlug | slugify }}/"
   </head>
   <body class="theme-{{meta.baseTheme}} markdown-preview-view markdown-rendered markdown-preview-section {{meta.bodyClasses}} article-page">
     <div class="reading-progress-track"><div class="reading-progress-bar"></div></div>
-    {%include "components/notegrowthhistory.njk"%}
-    
-    {# Article Navbar #}
-    {% include "components/articleNavbar.njk" %}
+    <main class="article-main-content" style="max-width: 880px; margin: 0 auto; padding: 2rem 1rem 3rem;">
+      <nav class="article-breadcrumb">
+        <a href="/posts/">Danh sách bài viết</a>
+      </nav>
 
-    {% if settings.dgEnableSearch === true %}
-      {%include "components/searchContainer.njk"%}
-    {% endif %}
+      <header class="article-header">
+        <h1 class="article-title">{{ title or page.fileSlug }}</h1>
+      </header>
 
-    <div class="article-page-container">
-      {# TOC Left Sidebar #}
-      {% include "components/tocLeft.njk" %}
+      {% if image or thumbnail %}
+      <div class="article-featured-image">
+        <img src="{{ image or thumbnail }}" alt="{{ title or page.fileSlug }}" loading="lazy">
+      </div>
+      {% endif %}
 
-      <main class="article-main-content">
-        {# Breadcrumb #}
-        <nav class="article-breadcrumb">
-          <a href="/">Trang chủ</a>
-          <i icon-name="chevron-right"></i>
-          <span>{{ page | get_category }}</span>
-          <i icon-name="chevron-right"></i>
-          <span>{{ title or page.fileSlug }}</span>
-        </nav>
+      <article class="article-content">
+        {{ content | hideDataview | taggify | link | safe}}
+      </article>
 
-        {# Article Header #}
-        <header class="article-header">
-          <h1 class="article-title">{{ title or page.fileSlug }}</h1>
-          {% if content %}
-            {% set firstParagraph = content | striptags | truncate(200) %}
-            {% if firstParagraph %}
-              <p class="article-lead">{{ firstParagraph }}</p>
-            {% endif %}
-          {% endif %}
-        </header>
-
-        {# Author Info #}
-        {% include "components/articleAuthor.njk" %}
-
-        {# Featured Image #}
-        {% if image or thumbnail %}
-        <div class="article-featured-image">
-          <img src="{{ image or thumbnail }}" alt="{{ title or page.fileSlug }}" loading="lazy">
-        </div>
-        {% endif %}
-      
-        {# Article Content #}
-        <article class="article-content">
-          {{ content | hideDataview | taggify | link | safe}}
-        </article>
-
-        {# Tags and Actions #}
-        {% include "components/articleTags.njk" %}
-      
-        {# Related Posts #}
-        {% if relatedPosts and relatedPosts.length > 0 %}
-          {% include "components/relatedPosts.njk" %}
-        {% endif %}
-      
-        {# Comments #}
-        {% include "components/articleComments.njk" %}
-      </main>
-
-      {# Right Sidebar - Link Graph #}
-      {%include "components/sidebar.njk"%}
-    </div>
-
-    {% if settings.dgLinkPreview === true %}
-      {%include "components/linkPreview.njk"%}
-    {% endif %}
-    
-    {% include "components/references.njk" %}
-    {% include "components/timestamps.njk" %}
+      {% include "components/navigation.njk" %}
+    </main>
     
     {% for imp in dynamics.common.footer %}
       {% include imp %}
@@ -101,10 +51,5 @@ permalink: "notes/{{ page.fileSlug | slugify }}/"
             }
         });
     </script>
-    {%include "components/vercelAnalytics.njk"%}
-    {%include "components/speedInsights.njk"%}
-    {%include "components/backToTop.njk"%}
-    {%include "components/codeBlockCopy.njk"%}
-    {%include "components/uxEnhancements.njk"%}
   </body>
 </html>

@@ -10,7 +10,7 @@
       {% include imp %}
     {% endfor %}
   </head>
-  <body class="theme-{{meta.baseTheme}} markdown-preview-view markdown-rendered markdown-preview-section {{meta.bodyClasses}} {% if page.url == '/' %}blogos-dashboard-page{% endif %}">
+  <body class="theme-{{meta.baseTheme}} markdown-preview-view markdown-rendered markdown-preview-section {{meta.bodyClasses}} {% if page.url == '/' %}blogos-dashboard-page{% endif %} {% if page.url == '/posts/' %}posts-route-page{% endif %}">
     <div class="reading-progress-track"><div class="reading-progress-bar"></div></div>
     {%include "components/notegrowthhistory.njk"%}
     
@@ -118,12 +118,13 @@
       {%include "components/sidebar.njk"%}
     {% endif %}
 
-    {% if settings.dgLinkPreview === true %}
-      {%include "components/linkPreview.njk"%}
+    {% if page.url != "/" and page.url != "/posts/" %}
+      {% if settings.dgLinkPreview === true %}
+        {%include "components/linkPreview.njk"%}
+      {% endif %}
+      {% include "components/references.njk" %}
+      {% include "components/timestamps.njk" %}
     {% endif %}
-    
-    {% include "components/references.njk" %}
-    {% include "components/timestamps.njk" %}
     
     {% for imp in dynamics.common.footer %}
       {% include imp %}
@@ -139,11 +140,10 @@
             }
         });
     </script>
-    {%include "components/vercelAnalytics.njk"%}
-    {%include "components/speedInsights.njk"%}
-    {%include "components/backToTop.njk"%}
-    {%include "components/portfolioScripts.njk"%}
-    {%include "components/codeBlockCopy.njk"%}
-    {%include "components/uxEnhancements.njk"%}
+    {% if page.url != "/" and page.url != "/posts/" %}
+      {%include "components/backToTop.njk"%}
+      {%include "components/codeBlockCopy.njk"%}
+      {%include "components/uxEnhancements.njk"%}
+    {% endif %}
   </body>
 </html>

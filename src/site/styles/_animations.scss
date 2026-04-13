@@ -1,6 +1,5 @@
 .article-card,
-.post-card,
-.mini-chart-card {
+ .post-card {
   animation: cardFadeIn .45s ease both;
 }
 @keyframes cardFadeIn {

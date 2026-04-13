@@ -15,175 +15,27 @@ permalink: "projects/{{ page.fileSlug | slugify }}/"
   </head>
   <body class="theme-{{meta.baseTheme}} markdown-preview-view markdown-rendered markdown-preview-section {{meta.bodyClasses}} project-page">
     <div class="reading-progress-track"><div class="reading-progress-bar"></div></div>
-    {%include "components/notegrowthhistory.njk"%}
-    
-    {# Project Navbar #}
-    {% include "components/articleNavbar.njk" %}
+    <main class="article-main-content" style="max-width: 880px; margin: 0 auto; padding: 2rem 1rem 3rem;">
+      <nav class="article-breadcrumb">
+        <a href="/posts/">Danh sách bài viết</a>
+      </nav>
 
-    {% if settings.dgEnableSearch === true %}
-      {%include "components/searchContainer.njk"%}
-    {% endif %}
+      <header class="article-header">
+        <h1 class="article-title">{{ title or page.fileSlug }}</h1>
+      </header>
 
-    <div class="project-page-container">
-      {# TOC Left Sidebar #}
-      {% include "components/tocLeft.njk" %}
+      {% if image or thumbnail %}
+      <div class="article-featured-image">
+        <img src="{{ image or thumbnail }}" alt="{{ title or page.fileSlug }}" loading="lazy">
+      </div>
+      {% endif %}
 
-      <main class="project-main-content">
-        {# Breadcrumb #}
-        <nav class="project-breadcrumb">
-          <a href="/">Trang chủ</a>
-          <i icon-name="chevron-right"></i>
-          <a href="/posts/">Projects</a>
-          <i icon-name="chevron-right"></i>
-          <span>{{ title or page.fileSlug }}</span>
-        </nav>
+      <article class="article-content">
+        {{ content | hideDataview | taggify | link | safe}}
+      </article>
 
-        {# Project Header #}
-        <header class="project-header">
-          <div class="project-header-top">
-            <div class="project-category-badge">
-              {% if category %}
-                {{ category }}
-              {% else %}
-                Data Analysis Project
-              {% endif %}
-            </div>
-            {% if date %}
-              <span class="project-date">{{ date | date('%B %d, %Y') }}</span>
-            {% endif %}
-          </div>
-          
-          <h1 class="project-title">{{ title or page.fileSlug }}</h1>
-          
-          {% if description %}
-            <p class="project-description">{{ description }}</p>
-          {% endif %}
-
-          {# Technology Tags #}
-          {% if technology or tool %}
-            <div class="project-tech-stack">
-              <span class="project-tech-label">Tech Stack:</span>
-              {% set tech = technology or tool %}
-              {% if tech is iterable and tech is not string %}
-                {% for t in tech %}
-                  <span class="project-tech-badge">{{ t }}</span>
-                {% endfor %}
-              {% else %}
-                <span class="project-tech-badge">{{ tech }}</span>
-              {% endif %}
-            </div>
-          {% endif %}
-        </header>
-
-        {# Featured Image #}
-        {% if image or thumbnail %}
-        <div class="project-featured-image">
-          <img src="{{ image or thumbnail }}" alt="{{ title or page.fileSlug }}" loading="lazy">
-        </div>
-        {% endif %}
-
-        {# Project Content - Auto-detect sections #}
-        <div class="project-content-wrapper">
-          <div class="project-content">
-            {{ content | hideDataview | taggify | link | safe}}
-          </div>
-        </div>
-        
-        {# Auto-style sections với JavaScript #}
-        <script>
-          document.addEventListener('DOMContentLoaded', function() {
-            const content = document.querySelector('.project-content');
-            if (!content) return;
-            
-            // Find và style Problem section
-            const problemHeaders = content.querySelectorAll('h2, h3');
-            problemHeaders.forEach(header => {
-              const text = header.textContent.toLowerCase();
-              if (text.includes('problem') || text.includes('vấn đề')) {
-                const section = header.closest('section') || header.parentElement;
-                section.classList.add('project-problem-section');
-                header.classList.add('project-section-title');
-                const icon = document.createElement('i');
-                icon.setAttribute('icon-name', 'alert-circle');
-                header.insertBefore(icon, header.firstChild);
-              }
-              
-              if (text.includes('solution') || text.includes('giải pháp')) {
-                const section = header.closest('section') || header.parentElement;
-                section.classList.add('project-solution-section');
-                header.classList.add('project-section-title');
-                const icon = document.createElement('i');
-                icon.setAttribute('icon-name', 'lightbulb');
-                header.insertBefore(icon, header.firstChild);
-              }
-              
-              if (text.includes('impact') || text.includes('kết quả')) {
-                const section = header.closest('section') || header.parentElement;
-                section.classList.add('project-impact-section');
-                header.classList.add('project-section-title');
-                const icon = document.createElement('i');
-                icon.setAttribute('icon-name', 'trending-up');
-                header.insertBefore(icon, header.firstChild);
-              }
-            });
-            
-            // Initialize icons
-            if (typeof lucide !== 'undefined') {
-              lucide.createIcons();
-            }
-          });
-        </script>
-
-        {# Project Metrics / ROI #}
-        {% if roi or cir_improvement or metrics %}
-        <section class="project-metrics">
-          <h2 class="project-metrics-title">Project Metrics</h2>
-          <div class="project-metrics-grid">
-            {% if roi %}
-            <div class="project-metric-card">
-              <div class="metric-icon">
-                <i icon-name="dollar-sign"></i>
-              </div>
-              <div class="metric-info">
-                <p class="metric-label">ROI</p>
-                <h3 class="metric-value">{{ roi }}</h3>
-              </div>
-            </div>
-            {% endif %}
-            {% if cir_improvement %}
-            <div class="project-metric-card">
-              <div class="metric-icon">
-                <i icon-name="trending-up"></i>
-              </div>
-              <div class="metric-info">
-                <p class="metric-label">CIR Improvement</p>
-                <h3 class="metric-value">{{ cir_improvement }}</h3>
-              </div>
-            </div>
-            {% endif %}
-          </div>
-        </section>
-        {% endif %}
-
-        {# Tags and Actions #}
-        {% include "components/articleTags.njk" %}
-      
-        {# Related Projects #}
-        {% if relatedPosts and relatedPosts.length > 0 %}
-          {% include "components/relatedPosts.njk" %}
-        {% endif %}
-      </main>
-
-      {# Right Sidebar #}
-      {%include "components/sidebar.njk"%}
-    </div>
-
-    {% if settings.dgLinkPreview === true %}
-      {%include "components/linkPreview.njk"%}
-    {% endif %}
-    
-    {% include "components/references.njk" %}
-    {% include "components/timestamps.njk" %}
+      {% include "components/navigation.njk" %}
+    </main>
     
     {% for imp in dynamics.common.footer %}
       {% include imp %}
@@ -199,10 +51,5 @@ permalink: "projects/{{ page.fileSlug | slugify }}/"
             }
         });
     </script>
-    {%include "components/vercelAnalytics.njk"%}
-    {%include "components/speedInsights.njk"%}
-    {%include "components/backToTop.njk"%}
-    {%include "components/codeBlockCopy.njk"%}
-    {%include "components/uxEnhancements.njk"%}
   </body>
 </html>
