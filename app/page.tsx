@@ -10,19 +10,15 @@ function normalizeSort(input?: string): SortMode {
   return "newest";
 }
 
-export default function HomePage({
+export default async function HomePage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; sort?: string; folder?: string }>;
 }) {
-  const q = "";
-  const sort = "newest" as const;
-  const folder = "";
-  void q;
-  void sort;
-  void folder;
-  return null;
-}
+  const params = await searchParams;
+  const q = params.q || "";
+  const sort = normalizeSort(params.sort);
+  const folder = params.folder || "";
   const posts = getAllPostSummaries({ q, sort, folder });
   const folders = getTopNoteFolders();
 
