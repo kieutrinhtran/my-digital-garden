@@ -1,7 +1,0 @@
-<div x-init="isDesktop = (window.innerWidth>=1400) ? true: false;" 
-        x-on:resize.window="isDesktop = (window.innerWidth>=1400) ? true : false;" 
-        x-data="{isDesktop: true, showFilesMobile: false}">
-
-    {# Navbar luôn hiển thị trên mọi màn hình #}
-    {%include "components/navbar.njk"%}
-</div>

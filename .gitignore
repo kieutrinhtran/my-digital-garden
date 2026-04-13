@@ -53,9 +53,6 @@ $RECYCLE.BIN/
 netlify/functions/search/data.json
 netlify/functions/search/index.json
 
-# Generated theme files
-src/site/styles/theme.*.css
-src/site/styles/_theme.*.css
 
 # Logs
 *.log
@@ -124,17 +121,9 @@ coverage/
 .yarn/install-state.gz
 .pnp.*
 
-# Eleventy
-.eleventy.js.bak
-.eleventy.cache.json
 
 # Image optimization cache
 img/optimized/
 *.webp
 *.avif
 
-# Search index (generated)
-searchIndex.json
-
-# Graph data (generated)
-graph.json
