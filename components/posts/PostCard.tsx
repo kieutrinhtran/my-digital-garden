@@ -7,9 +7,8 @@ export function PostCard({ post }: { post: PostSummary }) {
       <Link href={`/posts/${post.slug}`} className="block space-y-3 no-underline">
         <h2 className="text-xl font-semibold text-white">{post.title}</h2>
         <p className="line-clamp-3 text-sm text-indigo-100/80">{post.description}</p>
-        <div className="flex items-center justify-between text-xs text-indigo-100/70">
+        <div className="flex items-center text-xs text-indigo-100/70">
           <span>{new Date(post.date).toLocaleDateString("vi-VN")}</span>
-          <span>{post.views} views</span>
         </div>
       </Link>
     </article>

@@ -41,12 +41,6 @@ export function Hero3D() {
             >
               Xem tất cả bài viết
             </Link>
-            <Link
-              href="/?sort=views"
-              className="rounded-full border border-white/30 bg-black/20 px-4 py-2 text-sm font-medium text-indigo-100 hover:bg-white/10"
-            >
-              Bài phổ biến
-            </Link>
           </div>
         </div>
       </div>

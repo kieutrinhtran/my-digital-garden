@@ -5,7 +5,6 @@ import { PostCard } from "./PostCard";
 const sortLabel: Record<SortMode, string> = {
   newest: "Mới nhất",
   oldest: "Cũ nhất",
-  views: "Nhiều lượt xem",
   title: "Theo tiêu đề",
 };
 

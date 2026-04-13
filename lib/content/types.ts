@@ -1,4 +1,4 @@
-export type SortMode = "newest" | "oldest" | "views" | "title";
+export type SortMode = "newest" | "oldest" | "title";
 
 export type PostFrontmatter = {
   title?: string;
@@ -16,7 +16,6 @@ export type PostSummary = {
   title: string;
   description: string;
   date: string;
-  views: number;
   tags: string[];
   folderSlug: string;
   folderName: string;

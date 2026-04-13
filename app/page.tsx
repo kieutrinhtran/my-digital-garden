@@ -3,19 +3,26 @@ import { SortMode } from "@/lib/content/types";
 import { PostList } from "@/components/posts/PostList";
 import { Hero3D } from "@/components/hero/Hero3D";
 
+export const dynamic = "force-dynamic";
+
 function normalizeSort(input?: string): SortMode {
-  if (input === "oldest" || input === "views" || input === "title") return input;
+  if (input === "oldest" || input === "title") return input;
   return "newest";
 }
 
 export default function HomePage({
   searchParams,
 }: {
-  searchParams: { q?: string; sort?: string; folder?: string };
+  searchParams: Promise<{ q?: string; sort?: string; folder?: string }>;
 }) {
-  const q = searchParams.q || "";
-  const sort = normalizeSort(searchParams.sort);
-  const folder = searchParams.folder || "";
+  const q = "";
+  const sort = "newest" as const;
+  const folder = "";
+  void q;
+  void sort;
+  void folder;
+  return null;
+}
   const posts = getAllPostSummaries({ q, sort, folder });
   const folders = getTopNoteFolders();
 

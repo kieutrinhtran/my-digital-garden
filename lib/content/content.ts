@@ -3,7 +3,9 @@ import path from "node:path";
 import matter from "gray-matter";
 import { remark } from "remark";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import remarkRehype from "remark-rehype";
+import rehypeKatex from "rehype-katex";
 import rehypeStringify from "rehype-stringify";
 import { NoteFolder, PostDetail, PostFrontmatter, PostSummary, SortMode } from "./types";
 import { slugFromPermalink, toSlug } from "./slug";
@@ -42,14 +44,13 @@ function parsePostFile(filePath: string): { summary: PostSummary; markdownBody: 
   const description = (fm.description || plain.slice(0, 180)).trim();
   const date = fm.date || fm.updated || new Date().toISOString();
   const tags = Array.isArray(fm.tags) ? fm.tags : [];
-  const views = Number(fm.views || 0);
   const relative = path.relative(CONTENT_ROOT, filePath);
   const firstDir = relative.split(path.sep)[0] || "Khac";
   const folderName = firstDir;
   const folderSlug = toSlug(firstDir);
 
   return {
-    summary: { slug, title, description, date, tags, views, folderSlug, folderName },
+    summary: { slug, title, description, date, tags, folderSlug, folderName },
     markdownBody: content,
   };
 }
@@ -57,7 +58,6 @@ function parsePostFile(filePath: string): { summary: PostSummary; markdownBody: 
 function sortPosts(posts: PostSummary[], sort: SortMode): PostSummary[] {
   const copy = [...posts];
   copy.sort((a, b) => {
-    if (sort === "views") return b.views - a.views;
     if (sort === "oldest") return +new Date(a.date) - +new Date(b.date);
     if (sort === "title") return a.title.localeCompare(b.title, "vi");
     return +new Date(b.date) - +new Date(a.date);
@@ -103,7 +103,9 @@ export async function getPostBySlug(slug: string): Promise<PostDetail | null> {
 
     const html = await remark()
       .use(remarkGfm)
+      .use(remarkMath, { singleDollarTextMath: false })
       .use(remarkRehype)
+      .use(rehypeKatex)
       .use(rehypeStringify)
       .process(markdownBody);
 

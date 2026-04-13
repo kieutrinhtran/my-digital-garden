@@ -2,8 +2,10 @@ import { getAllPostSummaries, getTopNoteFolders } from "@/lib/content/content";
 import { SortMode } from "@/lib/content/types";
 import { PostList } from "@/components/posts/PostList";
 
+export const dynamic = "force-dynamic";
+
 function normalizeSort(input?: string): SortMode {
-  if (input === "oldest" || input === "views" || input === "title") return input;
+  if (input === "oldest" || input === "title") return input;
   return "newest";
 }
 
