@@ -12,6 +12,10 @@ import { slugFromPermalink, toSlug } from "./slug";
 
 const CONTENT_ROOT = path.join(process.cwd(), "src", "site", "notes");
 
+function toFolderKey(parts: string[]): string {
+  return parts.map((segment) => segment.trim().toLowerCase()).join("/");
+}
+
 function scanMarkdownFiles(dir: string): string[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   const result: string[] = [];
@@ -25,6 +29,20 @@ function scanMarkdownFiles(dir: string): string[] {
     if (entry.isFile() && entry.name.toLowerCase().endsWith(".md")) {
       result.push(fullPath);
     }
+  }
+
+  return result;
+}
+
+function scanDirectories(dir: string): string[] {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const result: string[] = [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const fullPath = path.join(dir, entry.name);
+    result.push(fullPath);
+    result.push(...scanDirectories(fullPath));
   }
 
   return result;
@@ -45,9 +63,10 @@ function parsePostFile(filePath: string): { summary: PostSummary; markdownBody: 
   const date = fm.date || fm.updated || new Date().toISOString();
   const tags = Array.isArray(fm.tags) ? fm.tags : [];
   const relative = path.relative(CONTENT_ROOT, filePath);
-  const firstDir = relative.split(path.sep)[0] || "Khac";
-  const folderName = firstDir;
-  const folderSlug = toSlug(firstDir);
+  const relativeDir = path.dirname(relative);
+  const parts = relativeDir === "." ? [] : relativeDir.split(path.sep).filter(Boolean);
+  const folderName = parts.length > 0 ? parts[parts.length - 1] : "Khac";
+  const folderSlug = parts.length > 0 ? toFolderKey(parts) : "khac";
 
   return {
     summary: { slug, title, description, date, tags, folderSlug, folderName },
@@ -75,7 +94,11 @@ export function getAllPostSummaries(opts?: {
   const folder = (opts?.folder || "").trim().toLowerCase();
   const files = scanMarkdownFiles(CONTENT_ROOT);
   const posts = files.map((filePath) => parsePostFile(filePath).summary);
-  const withFolder = folder ? posts.filter((post) => post.folderSlug === folder) : posts;
+  const withFolder = folder
+    ? posts.filter(
+        (post) => post.folderSlug === folder || post.folderSlug.startsWith(`${folder}/`),
+      )
+    : posts;
   const filtered = query
     ? withFolder.filter((post) =>
         `${post.title} ${post.description}`.toLowerCase().includes(query),
@@ -85,14 +108,28 @@ export function getAllPostSummaries(opts?: {
 }
 
 export function getTopNoteFolders(): NoteFolder[] {
-  const entries = fs.readdirSync(CONTENT_ROOT, { withFileTypes: true });
-  return entries
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => ({
-      slug: toSlug(entry.name),
-      name: entry.name,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name, "vi"));
+  const directories = scanDirectories(CONTENT_ROOT);
+  const folderMap = new Map<string, NoteFolder>();
+
+  for (const dirPath of directories) {
+    const relative = path.relative(CONTENT_ROOT, dirPath);
+    const parts = relative.split(path.sep).filter(Boolean);
+    if (parts.length === 0) continue;
+
+    const slug = toFolderKey(parts);
+    if (folderMap.has(slug)) continue;
+
+    folderMap.set(slug, {
+      slug,
+      name: parts.join(" / "),
+      depth: parts.length - 1,
+    });
+  }
+
+  return [...folderMap.values()].sort((a, b) => {
+    if (a.depth !== b.depth) return a.depth - b.depth;
+    return a.name.localeCompare(b.name, "vi");
+  });
 }
 
 export async function getPostBySlug(slug: string): Promise<PostDetail | null> {

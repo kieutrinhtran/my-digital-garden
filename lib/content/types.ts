@@ -28,4 +28,5 @@ export type PostDetail = PostSummary & {
 export type NoteFolder = {
   slug: string;
   name: string;
+  depth: number;
 };

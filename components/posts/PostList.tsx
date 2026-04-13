@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { NoteFolder, PostSummary, SortMode } from "@/lib/content/types";
+import { FolderDropdownMenu } from "./FolderDropdownMenu";
 import { PostCard } from "./PostCard";
 
 const sortLabel: Record<SortMode, string> = {
@@ -24,6 +25,18 @@ export function PostList({
   actionPath: "/" | "/posts";
 }) {
   const activeFolder = folder || "";
+  const parentFolders = folders
+    .filter((item) => item.depth === 0)
+    .sort((a, b) => a.name.localeCompare(b.name, "vi"));
+  const getChildren = (parentSlug: string) =>
+    folders
+      .filter((item) => item.depth === 1 && item.slug.startsWith(`${parentSlug}/`))
+      .sort((a, b) => a.name.localeCompare(b.name, "vi"));
+  const getRelativeName = (parentName: string, childName: string) =>
+    childName.startsWith(`${parentName} / `)
+      ? childName.slice(parentName.length + 3)
+      : childName;
+
   const createFolderHref = (folderValue: string) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
@@ -35,33 +48,62 @@ export function PostList({
 
   return (
     <section className="mx-auto w-full max-w-6xl px-4 py-8">
-      <header className="glass-panel mb-6 rounded-2xl p-5">
-        <h1 className="text-4xl font-bold tracking-tight text-white">Bài viết mới nhất</h1>
-        <p className="mt-2 text-sm text-indigo-100/75">{posts.length} bài</p>
-
-        <nav className="mt-4 flex flex-wrap gap-2">
+      <div className="sticky top-4 z-40 mb-4">
+        <nav className="glass-panel flex flex-nowrap items-center gap-2 overflow-x-auto overflow-y-hidden rounded-2xl px-3 py-3">
           <Link
             href={createFolderHref("")}
-            className={`rounded-full px-3 py-1 text-xs ${
+            className={`shrink-0 rounded-full px-3 py-1 text-xs ${
               activeFolder === "" ? "bg-white/25 text-white" : "bg-white/10 text-indigo-100/80"
             }`}
           >
             Tất cả
           </Link>
-          {folders.map((item) => (
-            <Link
-              key={item.slug}
-              href={createFolderHref(item.slug)}
-              className={`rounded-full px-3 py-1 text-xs ${
-                activeFolder === item.slug
-                  ? "bg-white/25 text-white"
-                  : "bg-white/10 text-indigo-100/80"
-              }`}
-            >
-              {item.name}
-            </Link>
-          ))}
+          {parentFolders.map((parent) => {
+            const children = getChildren(parent.slug);
+            if (children.length === 0) {
+              return (
+                <Link
+                  key={parent.slug}
+                  href={createFolderHref(parent.slug)}
+                  className={`shrink-0 rounded-full px-3 py-1 text-xs ${
+                    activeFolder === parent.slug
+                      ? "bg-white/25 text-white"
+                      : "bg-white/10 text-indigo-100/80"
+                  }`}
+                >
+                  {parent.name}
+                </Link>
+              );
+            }
+
+            const menuItems = [
+              { slug: parent.slug, label: `Tất cả trong ${parent.name}` },
+              ...children.map((child) => ({
+                slug: child.slug,
+                label: getRelativeName(parent.name, child.name),
+              })),
+            ];
+
+            return (
+              <FolderDropdownMenu
+                key={parent.slug}
+                parentName={parent.name}
+                parentSlug={parent.slug}
+                parentHref={createFolderHref(parent.slug)}
+                items={menuItems}
+                activeFolder={activeFolder}
+                q={q}
+                sort={sort}
+                actionPath={actionPath}
+              />
+            );
+          })}
         </nav>
+      </div>
+
+      <header className="glass-panel mb-6 rounded-2xl p-5">
+        <h1 className="text-4xl font-bold tracking-tight text-white">Bài viết mới nhất</h1>
+        <p className="mt-2 text-sm text-indigo-100/75">{posts.length} bài</p>
 
         <form action={actionPath} className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-[1fr_220px]">
           {folder ? <input type="hidden" name="folder" value={folder} /> : null}
