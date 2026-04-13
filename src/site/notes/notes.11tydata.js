@@ -9,6 +9,11 @@ module.exports = {
       if (data.tags && data.tags.indexOf("gardenEntry") != -1) {
         return "layouts/index.njk";
       }
+      // Projects use project layout
+      if (data.layout === "project" || 
+          (data.tags && (data.tags.includes("project") || data.tags.includes("portfolio")))) {
+        return "layouts/project.njk";
+      }
       return "layouts/note.njk";
     },
     permalink: (data) => {

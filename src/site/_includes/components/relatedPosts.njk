@@ -3,24 +3,38 @@
   Description: Hiển thị các bài viết liên quan
 #}
 {% if relatedPosts and relatedPosts.length > 0 %}
-<div class="related-posts">
-    <h3 class="related-posts-title">
-        <i icon-name="link"></i>
+<div class="article-related-posts">
+    <h3 class="article-related-title">
+        <span class="article-related-title-bar">|</span>
         Bài viết liên quan
     </h3>
-    <div class="related-posts-grid">
-        {% for post in relatedPosts %}
-        <a href="{{ post.url }}" class="related-post-card">
-            <div class="related-post-content">
-                <h4 class="related-post-title">{{ post.title }}</h4>
-                {% if post.date %}
-                <div class="related-post-meta">
-                    <i icon-name="calendar"></i>
-                    <time datetime="{{ post.date | dateToZulu }}">{{ post.date | date('%d/%m/%Y') }}</time>
+    <div class="article-related-grid">
+        {% for post in relatedPosts | slice(0, 3) %}
+        <a href="{{ post.url }}" class="article-related-card">
+            <div class="article-related-image">
+              {% if post.data.image or post.data.thumbnail %}
+                <img src="{{ post.data.image or post.data.thumbnail }}" alt="{{ post.title }}" loading="lazy">
+              {% else %}
+                <div class="article-related-image-placeholder">
+                  <i icon-name="file-text"></i>
                 </div>
-                {% endif %}
+              {% endif %}
+              <div class="article-related-category">{{ post | get_category | upper }}</div>
             </div>
-            <i icon-name="arrow-right" class="related-post-arrow"></i>
+            <div class="article-related-content">
+                <h4 class="article-related-card-title">{{ post.title }}</h4>
+                <div class="article-related-meta">
+                  {% if post.date %}
+                    <time datetime="{{ post.date | dateToZulu }}">{{ post.date | date('%d Th%m') }}</time>
+                  {% endif %}
+                  {% if post.templateContent %}
+                    {% set readingTime = post.templateContent | get_reading_time %}
+                    {% if readingTime and readingTime > 0 %}
+                    <span>• {{ readingTime }} phút đọc</span>
+                    {% endif %}
+                  {% endif %}
+                </div>
+            </div>
         </a>
         {% endfor %}
     </div>

@@ -1,0 +1,723 @@
+{# 
+  Component: Portfolio Scripts
+  Description: JavaScript functions cho các chức năng portfolio
+#}
+<script>
+  // Search functionality cho homepage nav
+  document.addEventListener('DOMContentLoaded', function() {
+    // Homepage nav search
+    const navSearchInput = document.querySelector('.homepage-nav .nav-search input');
+    if (navSearchInput) {
+      navSearchInput.addEventListener('focus', function() {
+        if (typeof toggleSearch === 'function') {
+          toggleSearch();
+        }
+      });
+      
+      navSearchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (typeof toggleSearch === 'function') {
+            toggleSearch();
+            const searchField = document.getElementById('term');
+            if (searchField) {
+              searchField.value = this.value;
+              if (typeof search === 'function') {
+                setTimeout(() => search(), 100);
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Sort functionality cho posts page - đợi Alpine.js khởi tạo
+    function initSortFunctionality() {
+      const postsPage = document.querySelector('.posts-page');
+      if (!postsPage) return;
+
+      // Đợi Alpine.js khởi tạo
+      const checkAlpine = setInterval(() => {
+        if (window.Alpine && postsPage.__x) {
+          clearInterval(checkAlpine);
+          
+          const sortSelect = postsPage.querySelector('.sort-select');
+          if (sortSelect) {
+            sortSelect.addEventListener('change', function() {
+              const sortBy = this.value;
+              const activeTab = postsPage.__x.$data?.activeTab || 'projects';
+              sortPosts(sortBy, activeTab);
+            });
+          }
+        }
+      }, 100);
+
+      // Timeout sau 5 giây
+      setTimeout(() => clearInterval(checkAlpine), 5000);
+    }
+    
+    initSortFunctionality();
+
+    // Load More functionality
+    const loadMoreBtn = document.querySelector('.load-more-btn');
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', function() {
+        loadMorePosts();
+      });
+    }
+
+    // Like functionality - sử dụng event delegation
+    document.addEventListener('click', function(e) {
+      const likeBtn = e.target.closest('.action-btn[data-action="like"]');
+      if (likeBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleLike(likeBtn);
+      }
+
+      const shareBtn = e.target.closest('.action-btn[data-action="share"]');
+      if (shareBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const url = shareBtn.dataset.url || window.location.href;
+        const title = shareBtn.dataset.title || document.title;
+        sharePost(url, title);
+      }
+    });
+
+    // Newsletter functionality
+    const newsletterBtn = document.querySelector('.newsletter-button');
+    const newsletterInput = document.querySelector('.newsletter-input');
+    if (newsletterBtn && newsletterInput) {
+      newsletterBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        subscribeNewsletter(newsletterInput.value);
+      });
+      
+      newsletterInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          subscribeNewsletter(this.value);
+        }
+      });
+    }
+
+    // Profile edit button (placeholder - có thể redirect đến admin hoặc edit mode)
+    const profileEditBtn = document.querySelector('.profile-edit-btn');
+    if (profileEditBtn) {
+      profileEditBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Có thể mở modal edit hoặc redirect
+        showToast('Chức năng chỉnh sửa profile đang được phát triển. Bạn có thể chỉnh sửa thông tin trong file meta.js hoặc posts.njk', 'info');
+      });
+    }
+
+    // Admin FAB - New Post button
+    const newPostBtn = document.querySelector('.fab-menu-primary');
+    if (newPostBtn) {
+      newPostBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Có thể mở modal tạo post mới hoặc redirect đến editor
+        showToast('Chức năng tạo post mới. Trong production, đây sẽ mở editor hoặc redirect đến CMS.', 'info');
+        // Đóng FAB menu
+        const fabContainer = document.querySelector('.admin-fab-container');
+        if (fabContainer && fabContainer.__x) {
+          fabContainer.__x.$data.open = false;
+        }
+      });
+    }
+
+    // Admin FAB - Settings button
+    const settingsBtn = document.querySelector('.fab-menu-item[href="#"]');
+    if (settingsBtn && settingsBtn.querySelector('i[icon-name="settings"]')) {
+      settingsBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        showToast('Chức năng Settings đang được phát triển.', 'info');
+        // Đóng FAB menu
+        const fabContainer = document.querySelector('.admin-fab-container');
+        if (fabContainer && fabContainer.__x) {
+          fabContainer.__x.$data.open = false;
+        }
+      });
+    }
+
+    // Category tabs - smooth scroll và active state
+    const categoryTabs = document.querySelectorAll('.category-tab');
+    categoryTabs.forEach(tab => {
+      tab.addEventListener('click', function(e) {
+        // Remove active class from all tabs
+        categoryTabs.forEach(t => t.classList.remove('active'));
+        // Add active class to clicked tab
+        this.classList.add('active');
+      });
+    });
+
+    // Close FAB menu when clicking outside
+    document.addEventListener('click', function(e) {
+      const fabContainer = document.querySelector('.admin-fab-container');
+      if (fabContainer && !fabContainer.contains(e.target)) {
+        if (fabContainer.__x && fabContainer.__x.$data) {
+          fabContainer.__x.$data.open = false;
+        }
+      }
+    });
+
+    // Projects Gallery - Fix empty state detection
+    initProjectsGalleryFilters();
+  });
+
+  // Sort posts function
+  function sortPosts(sortBy, activeTab) {
+    const postsPage = document.querySelector('.posts-page');
+    if (!postsPage) return;
+
+    // Tìm grid đang active
+    const allGrids = postsPage.querySelectorAll('.posts-grid');
+    let activeGrid = null;
+    
+    allGrids.forEach(grid => {
+      const style = window.getComputedStyle(grid);
+      if (style.display !== 'none') {
+        activeGrid = grid;
+      }
+    });
+
+    if (!activeGrid) return;
+
+    const posts = Array.from(activeGrid.querySelectorAll('.post-card'));
+    if (posts.length === 0) return;
+    
+    posts.sort((a, b) => {
+      switch(sortBy) {
+        case 'newest':
+          const dateTextA = a.querySelector('.post-card-date')?.textContent?.trim() || '';
+          const dateTextB = b.querySelector('.post-card-date')?.textContent?.trim() || '';
+          const dateA = parseRelativeDate(dateTextA);
+          const dateB = parseRelativeDate(dateTextB);
+          return dateB - dateA;
+        
+        case 'oldest':
+          const dateTextA2 = a.querySelector('.post-card-date')?.textContent?.trim() || '';
+          const dateTextB2 = b.querySelector('.post-card-date')?.textContent?.trim() || '';
+          const dateA2 = parseRelativeDate(dateTextA2);
+          const dateB2 = parseRelativeDate(dateTextB2);
+          return dateA2 - dateB2;
+        
+        case 'views':
+          const viewsA = parseInt(a.querySelector('.post-card-views span')?.textContent?.replace(/[^0-9]/g, '') || 0);
+          const viewsB = parseInt(b.querySelector('.post-card-views span')?.textContent?.replace(/[^0-9]/g, '') || 0);
+          return viewsB - viewsA;
+        
+        case 'title':
+          const titleA = a.querySelector('.post-card-title')?.textContent?.toLowerCase() || '';
+          const titleB = b.querySelector('.post-card-title')?.textContent?.toLowerCase() || '';
+          return titleA.localeCompare(titleB);
+        
+        default:
+          return 0;
+      }
+    });
+
+    // Re-append sorted posts với animation
+    posts.forEach((post, index) => {
+      setTimeout(() => {
+        activeGrid.appendChild(post);
+      }, index * 10);
+    });
+  }
+
+  // Helper function để parse relative dates
+  function parseRelativeDate(dateText) {
+    if (!dateText) return 0;
+    
+    // Nếu là "Hôm nay" hoặc "1 ngày trước"
+    if (dateText.includes('Hôm nay')) return Date.now();
+    if (dateText.includes('1 ngày trước')) return Date.now() - 24 * 60 * 60 * 1000;
+    
+    // Parse số ngày/tuần/tháng trước
+    const match = dateText.match(/(\d+)\s*(ngày|tuần|tháng|năm)\s*trước/);
+    if (match) {
+      const num = parseInt(match[1]);
+      const unit = match[2];
+      let multiplier = 24 * 60 * 60 * 1000; // days
+      if (unit === 'tuần') multiplier *= 7;
+      else if (unit === 'tháng') multiplier *= 30;
+      else if (unit === 'năm') multiplier *= 365;
+      return Date.now() - (num * multiplier);
+    }
+    
+    return 0;
+  }
+
+  // Load more posts function - improved version
+  function loadMorePosts() {
+    const loadMoreBtn = document.querySelector('.load-more-btn');
+    if (!loadMoreBtn) return;
+
+    const postsPage = document.querySelector('.posts-page');
+    if (!postsPage || !postsPage.__x) return;
+
+    const activeTab = postsPage.__x.$data?.activeTab || 'projects';
+    const currentGrid = postsPage.querySelector(`.posts-grid[x-show*="${activeTab}"]`);
+    if (!currentGrid) return;
+
+    const currentPosts = currentGrid.querySelectorAll('.post-card').length;
+    const totalPosts = parseInt(loadMoreBtn.dataset.total || 12);
+    
+    if (currentPosts >= totalPosts) {
+      loadMoreBtn.style.display = 'none';
+      showToast('Đã hiển thị tất cả bài viết', 'info');
+      return;
+    }
+
+    // Show loading state
+    const originalHTML = loadMoreBtn.innerHTML;
+    loadMoreBtn.disabled = true;
+    loadMoreBtn.innerHTML = '<span>Đang tải...</span><i icon-name="loader-2"></i>';
+
+    // Simulate API call - trong production sẽ fetch từ server
+    setTimeout(() => {
+      // Calculate how many more to show
+      const postsToShow = Math.min(12, totalPosts - currentPosts);
+      
+      if (postsToShow > 0) {
+        // In production: fetch và render thêm posts
+        showToast(`Đã tải thêm ${postsToShow} bài viết`, 'success');
+      } else {
+        showToast('Đã hiển thị tất cả bài viết', 'info');
+        loadMoreBtn.style.display = 'none';
+      }
+
+      loadMoreBtn.disabled = false;
+      loadMoreBtn.innerHTML = originalHTML;
+    }, 1000);
+  }
+
+  // Toggle like function
+  function toggleLike(button) {
+    const icon = button.querySelector('i');
+    const isLiked = button.classList.contains('liked');
+    
+    if (isLiked) {
+      button.classList.remove('liked');
+      if (icon) {
+        icon.style.fill = 'none';
+        icon.style.stroke = 'currentColor';
+      }
+    } else {
+      button.classList.add('liked');
+      if (icon) {
+        icon.style.fill = 'currentColor';
+        icon.style.stroke = 'currentColor';
+      }
+    }
+
+    // Save to localStorage
+    const postUrl = button.dataset.url || button.closest('.article-card, .post-card')?.querySelector('a')?.href;
+    if (postUrl) {
+      const likes = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+      if (isLiked) {
+        const index = likes.indexOf(postUrl);
+        if (index > -1) likes.splice(index, 1);
+      } else {
+        if (!likes.includes(postUrl)) likes.push(postUrl);
+      }
+      localStorage.setItem('likedPosts', JSON.stringify(likes));
+    }
+  }
+
+  // Share post function
+  function sharePost(url, title) {
+    const postLink = url || window.location.href;
+    const postTitle = title || document.title;
+
+    if (navigator.share) {
+      navigator.share({
+        title: postTitle,
+        url: postLink
+      }).catch(err => console.log('Error sharing', err));
+    } else {
+      // Fallback: Copy to clipboard
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(postLink).then(() => {
+          showToast('Đã copy link vào clipboard!');
+        }).catch(err => {
+          // Fallback: Show link in prompt
+          prompt('Copy link này:', postLink);
+        });
+      } else {
+        // Final fallback
+        prompt('Copy link này:', postLink);
+      }
+    }
+  }
+
+  // Subscribe newsletter function
+  function subscribeNewsletter(email) {
+    if (!email || !email.includes('@')) {
+      showToast('Vui lòng nhập email hợp lệ!', 'error');
+      return;
+    }
+
+    const newsletterBtn = document.querySelector('.newsletter-button');
+    const newsletterInput = document.querySelector('.newsletter-input');
+    
+    if (newsletterBtn) {
+      newsletterBtn.disabled = true;
+      newsletterBtn.innerHTML = '<i icon-name="loader-2"></i>';
+    }
+
+    // In a real implementation, you would send to your newsletter service
+    setTimeout(() => {
+      if (newsletterBtn) {
+        newsletterBtn.disabled = false;
+        newsletterBtn.innerHTML = '<i icon-name="arrow-right"></i>';
+      }
+      if (newsletterInput) {
+        newsletterInput.value = '';
+      }
+      showToast('Cảm ơn bạn đã đăng ký!', 'success');
+    }, 1000);
+  }
+
+  // Toast notification function
+  function showToast(message, type = 'info') {
+    // Remove existing toast
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) {
+      existingToast.remove();
+    }
+
+    // Create toast
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    // Show toast
+    setTimeout(() => toast.classList.add('show'), 10);
+
+    // Hide toast after 3 seconds
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  // Initialize liked posts from localStorage
+  function initializeLikedPosts() {
+    const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
+    likedPosts.forEach(postUrl => {
+      // Tìm button bằng data-url hoặc href
+      const likeBtn = document.querySelector(`.action-btn[data-action="like"][data-url="${postUrl}"]`);
+      if (likeBtn) {
+        likeBtn.classList.add('liked');
+        const icon = likeBtn.querySelector('i');
+        if (icon) {
+          icon.style.fill = 'currentColor';
+          icon.style.stroke = 'currentColor';
+        }
+      } else {
+        // Fallback: tìm bằng href
+        const postCard = document.querySelector(`a[href="${postUrl}"]`)?.closest('.article-card, .post-card');
+        if (postCard) {
+          const likeBtn2 = postCard.querySelector('.action-btn[data-action="like"]');
+          if (likeBtn2) {
+            likeBtn2.classList.add('liked');
+            const icon = likeBtn2.querySelector('i');
+            if (icon) {
+              icon.style.fill = 'currentColor';
+              icon.style.stroke = 'currentColor';
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeLikedPosts);
+  } else {
+    initializeLikedPosts();
+  }
+
+  // Projects Gallery - Alpine.js data component
+  document.addEventListener('alpine:init', () => {
+    if (window.Alpine) {
+      Alpine.data('projectsGallery', () => ({
+        activeFilter: 'all',
+        getVisibleProjectsCount() {
+          if (this.activeFilter === 'all') return 999; // Always show if 'all'
+          
+          // Find the projects grid in this component
+          const section = document.querySelector('.projects-gallery-section');
+          if (!section) return 0;
+          
+          const grid = section.querySelector('.projects-grid');
+          if (!grid) return 0;
+          
+          const cards = grid.querySelectorAll('.project-card');
+          let count = 0;
+          cards.forEach(card => {
+            const style = window.getComputedStyle(card);
+            if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') {
+              count++;
+            }
+          });
+          return count;
+        }
+      }));
+    }
+  });
+
+  // Projects Gallery - Fix filter và empty state với Alpine.js
+  function initProjectsGalleryFilters() {
+    // Alpine.js sẽ tự động handle với x-data="projectsGallery"
+    // Function đã được định nghĩa ở trên
+  }
+
+  // Smooth scroll cho internal links
+  document.addEventListener('click', function(e) {
+    const link = e.target.closest('a[href^="#"]');
+    if (link) {
+      const href = link.getAttribute('href');
+      if (href && href !== '#') {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Update URL without jumping
+          history.pushState(null, null, href);
+        }
+      }
+    }
+  });
+
+  // View All links - ensure they work correctly
+  document.querySelectorAll('.category-link[href="/posts/"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+      // Link sẽ navigate bình thường, nhưng có thể thêm analytics
+      // Track click event nếu cần
+    });
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    // ESC to close modals/FAB
+    if (e.key === 'Escape') {
+      const fabContainer = document.querySelector('.admin-fab-container');
+      if (fabContainer && fabContainer.__x && fabContainer.__x.$data) {
+        fabContainer.__x.$data.open = false;
+      }
+      
+      // Close search modal
+      const searchModal = document.getElementById('globalsearch');
+      if (searchModal && searchModal.classList.contains('active')) {
+        if (typeof toggleSearch === 'function') {
+          toggleSearch();
+        }
+      }
+    }
+
+    // Ctrl/Cmd + / để mở search
+    if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+      e.preventDefault();
+      if (typeof toggleSearch === 'function') {
+        toggleSearch();
+      }
+    }
+
+    // Ctrl/Cmd + K để mở search (alternative)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      // Let searchScript handle this, but ensure it works
+    }
+  });
+
+  // Performance optimization: Lazy load images
+  if ('IntersectionObserver' in window) {
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          if (img.dataset.src) {
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+            observer.unobserve(img);
+          }
+        }
+      });
+    });
+
+    // Observe all images with data-src
+    document.querySelectorAll('img[data-src]').forEach(img => {
+      imageObserver.observe(img);
+    });
+  }
+
+  // Analytics tracking cho các actions (optional)
+  function trackEvent(action, category, label) {
+    // Có thể tích hợp với Google Analytics, Plausible, etc.
+    if (typeof gtag !== 'undefined') {
+      gtag('event', action, {
+        event_category: category,
+        event_label: label
+      });
+    }
+    // Hoặc custom analytics
+    console.log('Event tracked:', { action, category, label });
+  }
+
+  // Track clicks on important buttons
+  document.addEventListener('click', function(e) {
+    // Track like clicks
+    if (e.target.closest('.action-btn[data-action="like"]')) {
+      trackEvent('like', 'engagement', e.target.closest('.action-btn')?.dataset.url);
+    }
+    
+    // Track share clicks
+    if (e.target.closest('.action-btn[data-action="share"]')) {
+      trackEvent('share', 'engagement', e.target.closest('.action-btn')?.dataset.url);
+    }
+    
+    // Track category link clicks
+    if (e.target.closest('.category-link')) {
+      trackEvent('view_all', 'navigation', e.target.closest('.category-link')?.textContent?.trim());
+    }
+    
+    // Track filter clicks
+    if (e.target.closest('.filter-btn')) {
+      const filter = e.target.closest('.filter-btn')?.textContent?.trim();
+      trackEvent('filter', 'projects', filter);
+    }
+  });
+
+  // Error handling cho các functions
+  window.addEventListener('error', function(e) {
+    console.error('Portfolio script error:', e.error);
+    // Có thể gửi error đến error tracking service (Sentry, etc.)
+  });
+
+  // Unhandled promise rejection
+  window.addEventListener('unhandledrejection', function(e) {
+    console.error('Unhandled promise rejection:', e.reason);
+  });
+
+  // Performance monitoring
+  if ('PerformanceObserver' in window) {
+    try {
+      const perfObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          // Log slow operations
+          if (entry.duration > 100) {
+            console.warn('Slow operation detected:', entry.name, entry.duration + 'ms');
+          }
+        }
+      });
+      perfObserver.observe({ entryTypes: ['measure', 'navigation'] });
+    } catch (e) {
+      // PerformanceObserver not supported
+    }
+  }
+</script>
+
+<style>
+  /* Toast Notification Styles */
+  .toast-notification {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    z-index: 10000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  .toast-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .toast-notification.toast-success {
+    border-color: rgba(34, 197, 94, 0.5);
+    background: rgba(34, 197, 94, 0.1);
+  }
+
+  .toast-notification.toast-error {
+    border-color: rgba(239, 68, 68, 0.5);
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  /* Liked button style */
+  .action-btn.liked {
+    color: #ef4444;
+  }
+
+  .action-btn.liked i {
+    fill: currentColor;
+    stroke: currentColor;
+  }
+
+  /* Loading state */
+  .load-more-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  i[icon-name="loader-2"] {
+    animation: spin 1s linear infinite;
+  }
+
+  /* x-cloak để ẩn Alpine.js elements khi chưa init */
+  [x-cloak] {
+    display: none !important;
+  }
+
+  /* Smooth transitions cho filter changes */
+  .project-card {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .project-card[style*="display: none"] {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  /* Focus states cho accessibility */
+  .action-btn:focus,
+  .filter-btn:focus,
+  .category-tab:focus {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+  }
+
+  /* Loading skeleton cho better UX */
+  .loading-skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s ease-in-out infinite;
+  }
+
+  @keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+</style>

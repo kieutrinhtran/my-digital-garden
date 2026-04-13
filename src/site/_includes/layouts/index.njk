@@ -10,18 +10,22 @@
       {% include imp %}
     {% endfor %}
   </head>
-  <body class="theme-{{meta.baseTheme}} markdown-preview-view markdown-rendered markdown-preview-section {{meta.bodyClasses}}">
+  <body class="theme-{{meta.baseTheme}} markdown-preview-view markdown-rendered markdown-preview-section {{meta.bodyClasses}} {% if page.url == '/' %}blogos-dashboard-page{% endif %}">
+    <div class="reading-progress-track"><div class="reading-progress-bar"></div></div>
     {%include "components/notegrowthhistory.njk"%}
     
-    {# Always show navbar #}
-    {%include "components/navbar.njk"%}
+    {# Hide default navbar and sidebar for dashboard homepage and posts page #}
+    {% if page.url != "/" and page.url != "/posts/" %}
+      {# Always show navbar #}
+      {%include "components/navbar.njk"%}
 
-    {% if settings.dgEnableSearch === true %}
-      {%include "components/searchContainer.njk"%}
+      {% if settings.dgEnableSearch === true %}
+        {%include "components/searchContainer.njk"%}
+      {% endif %}
+
+      {# TOC Left Sidebar #}
+      {% include "components/tocLeft.njk" %}
     {% endif %}
-
-    {# TOC Left Sidebar #}
-    {% include "components/tocLeft.njk" %}
 
     <main class="content cm-s-obsidian {{contentClasses}}">
       {# Homepage: Skip header, show content directly #}
@@ -93,11 +97,13 @@
         </article>
       {% endif %}
       
-      {# Posts Gallery #}
-      {% include "components/postsGallery.njk" %}
-      
-      {# Post Heatmap #}
-      {% include "components/postHeatmap.njk" %}
+      {# Posts Gallery - Hide for dashboard homepage and posts page #}
+      {% if page.url != "/" and page.url != "/posts/" %}
+        {% include "components/postsGallery.njk" %}
+        
+        {# Post Heatmap #}
+        {% include "components/postHeatmap.njk" %}
+      {% endif %}
       
       {% for imp in dynamics.common.afterContent %}
         {% include imp %}
@@ -107,7 +113,10 @@
       {% endfor %}
     </main>
 
-    {%include "components/sidebar.njk"%}
+    {# Hide default sidebar for dashboard homepage and posts page #}
+    {% if page.url != "/" and page.url != "/posts/" %}
+      {%include "components/sidebar.njk"%}
+    {% endif %}
 
     {% if settings.dgLinkPreview === true %}
       {%include "components/linkPreview.njk"%}
@@ -133,5 +142,8 @@
     {%include "components/vercelAnalytics.njk"%}
     {%include "components/speedInsights.njk"%}
     {%include "components/backToTop.njk"%}
+    {%include "components/portfolioScripts.njk"%}
+    {%include "components/codeBlockCopy.njk"%}
+    {%include "components/uxEnhancements.njk"%}
   </body>
 </html>

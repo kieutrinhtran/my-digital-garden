@@ -1,0 +1,282 @@
+---
+permalink: /posts/
+layout: layouts/index.njk
+title: My Posts
+dgHomeLink: true
+dgShowFileTree: false
+dgShowLocalGraph: false
+dgShowToc: false
+dgShowBacklinks: false
+---
+
+<div class="posts-page" x-data="{ activeTab: 'projects', sortBy: 'newest', visibleProjects: 6, visiblePublished: 6, visibleDrafts: 6 }">
+  {# Profile Header #}
+  <header class="profile-header">
+    <div class="profile-avatar">
+      <i icon-name="user"></i>
+    </div>
+    <div class="profile-info">
+      <div class="profile-name-row">
+        <h1 class="profile-name">{{ meta.siteName }}</h1>
+        <span class="profile-badge">Data Analyst</span>
+      </div>
+      <p class="profile-description">
+        Sinh viên năm 3 ngành Business Information Systems (BIS) tại Đại học Kinh tế TP.HCM (UEH). Đam mê Business Intelligence, Data Analysis và Business Analysis. Tôi là một data analyst đầy nhiệt huyết, luôn khao khát học hỏi và đóng góp giá trị trong lĩnh vực phân tích dữ liệu đang phát triển mạnh mẽ này.
+      </p>
+      <div class="profile-meta">
+        <div class="profile-location">
+          <i icon-name="map-pin"></i>
+          <span>Việt Nam</span>
+        </div>
+        <div class="profile-links">
+          <a href="https://github.com/kieutrinhtran" class="profile-link" target="_blank" rel="noopener">
+            <i icon-name="github"></i>
+            <span>GitHub</span>
+          </a>
+          <a href="https://www.linkedin.com/in/kieutrinhtran/" class="profile-link" target="_blank" rel="noopener">
+            <i icon-name="linkedin"></i>
+            <span>LinkedIn</span>
+          </a>
+          <a href="mailto:kieutrinhtran.work@gmail.com" class="profile-link" target="_blank" rel="noopener">
+            <i icon-name="mail"></i>
+            <span>Email</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <button class="profile-edit-btn">
+      <i icon-name="pencil"></i>
+      <span>Chỉnh sửa</span>
+    </button>
+  </header>
+
+  {# Statistics Bar #}
+  <div class="stats-bar">
+    {% set totalProjects = collections.projects | length %}
+    {% set totalPosts = collections.published | length %}
+    {% set totalViews = collections.published | get_total_views(graph) %}
+    <div class="stat-item">
+      <div class="stat-value">{{ totalProjects }}</div>
+      <div class="stat-label">Projects</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">{{ totalPosts }}</div>
+      <div class="stat-label">Articles</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">{{ totalViews | format_views }}</div>
+      <div class="stat-label">Views</div>
+    </div>
+  </div>
+
+  {# Navigation Tabs #}
+  <div class="tabs-container">
+    <div class="tabs">
+      <button 
+        class="tab-item" 
+        :class="{ 'active': activeTab === 'projects' }"
+        @click="activeTab = 'projects'">
+        <i icon-name="database"></i>
+        Projects
+      </button>
+      <button 
+        class="tab-item" 
+        :class="{ 'active': activeTab === 'published' }"
+        @click="activeTab = 'published'">
+        <i icon-name="file-text"></i>
+        Articles
+      </button>
+      <button 
+        class="tab-item" 
+        :class="{ 'active': activeTab === 'drafts' }"
+        @click="activeTab = 'drafts'">
+        <i icon-name="edit"></i>
+        Drafts
+      </button>
+    </div>
+    <div class="sort-dropdown">
+      <select x-model="sortBy" class="sort-select">
+        <option value="newest">Sắp xếp: Mới nhất</option>
+        <option value="oldest">Sắp xếp: Cũ nhất</option>
+        <option value="views">Sắp xếp: Lượt xem</option>
+        <option value="title">Sắp xếp: Tiêu đề</option>
+      </select>
+    </div>
+  </div>
+
+  {# Content Grid #}
+  <div class="posts-grid-container">
+    {# Projects Tab #}
+    <div x-show="activeTab === 'projects'" class="posts-grid">
+      {% set allProjects = collections.projects %}
+      {% if allProjects | length > 0 %}
+        {% for project in allProjects %}
+        <article class="post-card project-card" x-show="{{ loop.index0 }} < visibleProjects">
+          <a href="{{ project.url }}" class="post-card-link">
+            <div class="post-card-image">
+              {% if project.data.image or project.data.thumbnail %}
+                <img src="{{ project.data.image or project.data.thumbnail }}" alt="{{ project.data.title or project.fileSlug }}" loading="lazy">
+              {% else %}
+                <div class="post-card-image-placeholder">
+                  <i icon-name="database"></i>
+                </div>
+              {% endif %}
+              <div class="post-card-category">
+                {% if project.data.category %}
+                  {{ project.data.category }}
+                {% else %}
+                  Project
+                {% endif %}
+              </div>
+              {% if project.data.technology or project.data.tool %}
+                <div class="post-card-tech-badge">
+                  {% set tech = project.data.technology or project.data.tool %}
+                  {% if tech is iterable and tech is not string %}
+                    {% for t in tech | slice(0, 2) %}
+                      <span class="tech-mini-badge">{{ t }}</span>
+                    {% endfor %}
+                  {% else %}
+                    <span class="tech-mini-badge">{{ tech }}</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+            <div class="post-card-content">
+              <h3 class="post-card-title">{{ project.data.title or project.fileSlug }}</h3>
+              {% if project.templateContent %}
+                {% set excerpt = project.templateContent | striptags | truncate(80) %}
+                {% if excerpt %}
+                  <p class="post-card-description">{{ excerpt }}</p>
+                {% endif %}
+              {% endif %}
+              <div class="post-card-stats">
+                <span class="post-card-views">
+                  <i icon-name="eye"></i>
+                  <span>{{ project | get_views(graph) | format_views }}</span>
+                </span>
+                <span class="post-card-date">
+                  {% if project.date %}
+                    {{ project.date | time_ago }}
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </a>
+        </article>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <i icon-name="database"></i>
+          <h3>Chưa có projects</h3>
+          <p>Bạn chưa có dự án nào được xuất bản. Hãy thêm tag "project" hoặc "portfolio" vào front matter của note.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    {# Published Posts #}
+    <div x-show="activeTab === 'published'" class="posts-grid">
+      {% set publishedPosts = collections.published %}
+      {% for post in publishedPosts %}
+      <article class="post-card" x-show="{{ loop.index0 }} < visiblePublished">
+        <a href="{{ post.url }}" class="post-card-link">
+          <div class="post-card-image">
+            {% if post.data.image or post.data.thumbnail %}
+              <img src="{{ post.data.image or post.data.thumbnail }}" alt="{{ post.data.title or post.fileSlug }}" loading="lazy">
+            {% else %}
+              <div class="post-card-image-placeholder">
+                <i icon-name="file-text"></i>
+              </div>
+            {% endif %}
+            <div class="post-card-category">
+              {{ post | get_category }}
+            </div>
+          </div>
+          <div class="post-card-content">
+            <h3 class="post-card-title">{{ post.data.title or post.fileSlug }}</h3>
+            {% if post.templateContent %}
+              {% set excerpt = post.templateContent | striptags | truncate(80) %}
+              {% if excerpt %}
+                <p class="post-card-description">{{ excerpt }}</p>
+              {% endif %}
+            {% endif %}
+            <div class="post-card-stats">
+              <span class="post-card-views">
+                <i icon-name="eye"></i>
+                <span>{{ post | get_views(graph) | format_views }}</span>
+              </span>
+              <span class="post-card-date">
+                {% if post.date %}
+                  {{ post.date | time_ago }}
+                {% endif %}
+              </span>
+            </div>
+          </div>
+        </a>
+      </article>
+      {% endfor %}
+    </div>
+
+    {# Drafts #}
+    <div x-show="activeTab === 'drafts'" class="posts-grid">
+      {% set draftPosts = collections.drafts %}
+      {% if draftPosts | length > 0 %}
+        {% for post in draftPosts %}
+        <article class="post-card" x-show="{{ loop.index0 }} < visibleDrafts">
+          <a href="{{ post.url }}" class="post-card-link">
+            <div class="post-card-image">
+              {% if post.data.image or post.data.thumbnail %}
+                <img src="{{ post.data.image or post.data.thumbnail }}" alt="{{ post.data.title or post.fileSlug }}" loading="lazy">
+              {% else %}
+                <div class="post-card-image-placeholder">
+                  <i icon-name="file-text"></i>
+                </div>
+              {% endif %}
+              <div class="post-card-category draft-badge">Draft</div>
+            </div>
+            <div class="post-card-content">
+              <h3 class="post-card-title">{{ post.data.title or post.fileSlug }}</h3>
+              {% if post.templateContent %}
+                {% set excerpt = post.templateContent | striptags | truncate(80) %}
+                {% if excerpt %}
+                  <p class="post-card-description">{{ excerpt }}</p>
+                {% endif %}
+              {% endif %}
+              <div class="post-card-stats">
+                <span class="post-card-date">
+                  {% if post.date %}
+                    {{ post.date | time_ago }}
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </a>
+        </article>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <i icon-name="file-text"></i>
+          <h3>Chưa có bản nháp</h3>
+          <p>Bạn chưa có bài viết nào ở trạng thái bản nháp.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  {# Load More Button #}
+  <div class="load-more-container">
+    <button class="load-more-btn" x-show="activeTab === 'projects' && visibleProjects < {{ collections.projects | length }}" @click="visibleProjects += 6">
+      <span>Xem thêm dự án</span>
+      <i icon-name="chevron-down"></i>
+    </button>
+    <button class="load-more-btn" x-show="activeTab === 'published' && visiblePublished < {{ collections.published | length }}" @click="visiblePublished += 6">
+      <span>Xem thêm bài viết</span>
+      <i icon-name="chevron-down"></i>
+    </button>
+    <button class="load-more-btn" x-show="activeTab === 'drafts' && visibleDrafts < {{ collections.drafts | length }}" @click="visibleDrafts += 6">
+      <span>Xem thêm bản nháp</span>
+      <i icon-name="chevron-down"></i>
+    </button>
+  </div>
+</div>
+

@@ -1,0 +1,197 @@
+---
+permalink: /resume/
+layout: layouts/index.njk
+title: Resume / CV
+dgHomeLink: true
+dgShowFileTree: false
+dgShowLocalGraph: false
+dgShowToc: false
+dgShowBacklinks: false
+---
+
+<div class="resume-page">
+  <div class="resume-container">
+    {# Resume Header #}
+    <header class="resume-header">
+      <div class="resume-header-content">
+        <div class="resume-avatar">
+          <i icon-name="user"></i>
+        </div>
+        <div class="resume-header-info">
+          <h1 class="resume-name">{{ meta.siteName }}</h1>
+          <p class="resume-title">Data Analyst</p>
+          <div class="resume-contact">
+            <a href="mailto:kieutrinhtran.work@gmail.com" class="resume-contact-item">
+              <i icon-name="mail"></i>
+              <span>kieutrinhtran.work@gmail.com</span>
+            </a>
+            <a href="https://github.com/kieutrinhtran" target="_blank" rel="noopener" class="resume-contact-item">
+              <i icon-name="github"></i>
+              <span>GitHub</span>
+            </a>
+            <a href="https://www.linkedin.com/in/kieutrinhtran/" target="_blank" rel="noopener" class="resume-contact-item">
+              <i icon-name="linkedin"></i>
+              <span>LinkedIn</span>
+            </a>
+            <div class="resume-contact-item">
+              <i icon-name="map-pin"></i>
+              <span>Việt Nam</span>
+            </div>
+          </div>
+        </div>
+        <div class="resume-actions">
+          <a href="/resume.pdf" download class="resume-download-btn" target="_blank">
+            <i icon-name="download"></i>
+            <span>Download PDF</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    {# Resume Content #}
+    <div class="resume-content">
+      {# Professional Summary #}
+      <section class="resume-section">
+        <h2 class="resume-section-title">
+          <i icon-name="user-circle"></i>
+          Professional Summary
+        </h2>
+        <div class="resume-section-content">
+          <p>
+            Sinh viên năm 3 ngành <strong>Business Information Systems (BIS)</strong> tại 
+            <strong>Đại học Kinh tế TP.HCM (UEH)</strong>. Đam mê Business Intelligence, 
+            Data Analysis và Business Analysis. Tôi là một data analyst đầy nhiệt huyết, 
+            luôn khao khát học hỏi và đóng góp giá trị trong lĩnh vực phân tích dữ liệu 
+            đang phát triển mạnh mẽ này.
+          </p>
+        </div>
+      </section>
+
+      {# Education #}
+      <section class="resume-section">
+        <h2 class="resume-section-title">
+          <i icon-name="graduation-cap"></i>
+          Education
+        </h2>
+        <div class="resume-section-content">
+          <div class="resume-item">
+            <div class="resume-item-header">
+              <h3 class="resume-item-title">Business Information Systems (BIS)</h3>
+              <span class="resume-item-date">2022 - Present</span>
+            </div>
+            <p class="resume-item-subtitle">Đại học Kinh tế TP.HCM (UEH)</p>
+            <p class="resume-item-description">
+              Chuyên ngành về Business Intelligence, Data Analysis và Business Analysis.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {# Skills #}
+      <section class="resume-section">
+        <h2 class="resume-section-title">
+          <i icon-name="code"></i>
+          Technical Skills
+        </h2>
+        <div class="resume-section-content">
+          <div class="resume-skills-grid">
+            {% set projectsByTech = collections.projectsByTech %}
+            {% if projectsByTech %}
+              {% for tech, projects in projectsByTech %}
+                {% if projects | length > 0 %}
+                <div class="resume-skill-item">
+                  <div class="resume-skill-icon">
+                    {% if tech == "sql" %}
+                      <i icon-name="database"></i>
+                    {% elif tech == "python" %}
+                      <i icon-name="code"></i>
+                    {% elif tech == "excel" %}
+                      <i icon-name="table"></i>
+                    {% elif tech == "tableau" or tech == "power-bi" or tech == "visualization" or tech == "dashboard" %}
+                      <i icon-name="bar-chart-3"></i>
+                    {% elif tech == "r" %}
+                      <i icon-name="code-2"></i>
+                    {% elif tech == "statistics" %}
+                      <i icon-name="trending-up"></i>
+                    {% elif tech == "machine-learning" %}
+                      <i icon-name="brain"></i>
+                    {% else %}
+                      <i icon-name="tool"></i>
+                    {% endif %}
+                  </div>
+                  <div class="resume-skill-info">
+                    <h4 class="resume-skill-name">{{ tech | replace("-", " ") | title }}</h4>
+                    <p class="resume-skill-level">{{ projects | length }} project{{ projects | length | pluralize("", "s") }}</p>
+                  </div>
+                </div>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+      </section>
+
+      {# Projects #}
+      <section class="resume-section">
+        <h2 class="resume-section-title">
+          <i icon-name="folder-kanban"></i>
+          Featured Projects
+        </h2>
+        <div class="resume-section-content">
+          {% set featuredProjects = collections.projects | slice(0, 5) %}
+          {% if featuredProjects | length > 0 %}
+            <div class="resume-projects-list">
+              {% for project in featuredProjects %}
+              <div class="resume-project-item">
+                <div class="resume-project-header">
+                  <h3 class="resume-project-title">
+                    <a href="{{ project.url }}">{{ project.data.title or project.fileSlug }}</a>
+                  </h3>
+                  {% if project.date %}
+                    <span class="resume-project-date">{{ project.date | date('%Y') }}</span>
+                  {% endif %}
+                </div>
+                {% if project.data.technology or project.data.tool %}
+                  <div class="resume-project-tech">
+                    {% set tech = project.data.technology or project.data.tool %}
+                    {% if tech is iterable and tech is not string %}
+                      {% for t in tech %}
+                        <span class="resume-tech-tag">{{ t }}</span>
+                      {% endfor %}
+                    {% else %}
+                      <span class="resume-tech-tag">{{ tech }}</span>
+                    {% endif %}
+                  </div>
+                {% endif %}
+                {% if project.templateContent %}
+                  {% set excerpt = project.templateContent | striptags | truncate(150) %}
+                  {% if excerpt %}
+                    <p class="resume-project-description">{{ excerpt }}</p>
+                  {% endif %}
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+      {# Interests #}
+      <section class="resume-section">
+        <h2 class="resume-section-title">
+          <i icon-name="heart"></i>
+          Interests
+        </h2>
+        <div class="resume-section-content">
+          <div class="resume-interests">
+            <span class="resume-interest-tag">Business Intelligence</span>
+            <span class="resume-interest-tag">Data Analysis</span>
+            <span class="resume-interest-tag">Business Analysis</span>
+            <span class="resume-interest-tag">Analytics</span>
+            <span class="resume-interest-tag">Data Visualization</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+{# 
+  Component: Article Author Info
+  Description: Hiển thị thông tin tác giả và metadata
+#}
+{% set articleViews = page | get_views(graph) %}
+{% if content %}
+  {% set articleReadingTime = content | get_reading_time %}
+{% else %}
+  {% set articleReadingTime = 0 %}
+{% endif %}
+<div class="article-author-section">
+  <div class="article-author-info">
+    <div class="article-author-avatar">
+      <i icon-name="user"></i>
+    </div>
+    <div class="article-author-details">
+      <div class="article-author-name">{{ meta.siteName }}</div>
+      <button class="article-follow-btn">Theo dõi</button>
+    </div>
+  </div>
+  <div class="article-meta-info">
+    {% if date %}
+    <div class="article-meta-item">
+      <time datetime="{{ date | dateToZulu }}">{{ date | date('%d') }} Tháng {{ date | date('%m') }}, {{ date | date('%Y') }}</time>
+    </div>
+    {% endif %}
+    {% if articleReadingTime and articleReadingTime > 0 %}
+      <div class="article-meta-item">{{ articleReadingTime }} phút đọc</div>
+    {% endif %}
+    <div class="article-meta-item">
+      <i icon-name="eye"></i>
+      <span>{{ articleViews | format_views }}</span>
+    </div>
+    <button class="article-meta-action">
+      <i icon-name="bookmark"></i>
+    </button>
+    <button class="article-meta-action">
+      <i icon-name="share-2"></i>
+    </button>
+  </div>
+</div>
+

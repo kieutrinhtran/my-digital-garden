@@ -10,6 +10,9 @@
 <title>{% if seo.title %}{{ seo.title }}{% if not tags or not tags.includes("gardenEntry") %} - {{ siteName }}{% endif %}{% else %}{{ siteName }}{% endif %}</title>
 <meta name="description" content="{{ seo.description }}">
 <meta name="author" content="{{ seo.author }}">
+{% if seo.keywords %}
+<meta name="keywords" content="{{ seo.keywords }}">
+{% endif %}
 
 {# Canonical URL #}
 <link rel="canonical" href="{{ seo.canonical }}">

@@ -13,6 +13,7 @@ const {
   userMarkdownSetup,
   userEleventySetup,
 } = require("./src/helpers/userSetup");
+const { extractFrontmatter, normalizeImagePath, validateFrontmatter } = require("./src/helpers/frontmatterUtils");
 
 const Image = require("@11ty/eleventy-img");
 
@@ -593,7 +594,7 @@ module.exports = function (eleventyConfig) {
   // or use static links as configured in pageheader.njk
   eleventyConfig.addPlugin(tocPlugin, {
     ul: true,
-    tags: ["h1", "h2", "h3", "h4", "h5", "h6"],
+    tags: ["h2", "h3"], // Chỉ hiển thị H2 và H3 trong TOC cho dễ đọc
   });
 
 
@@ -692,8 +693,31 @@ module.exports = function (eleventyConfig) {
       if (operator === "equalto") {
         return attrValue !== value;
       }
+      if (operator === "contains") {
+        if (Array.isArray(attrValue)) {
+          return !attrValue.includes(value);
+        }
+        if (typeof attrValue === "string") {
+          return !attrValue.includes(value);
+        }
+        return true;
+      }
       return true;
     });
+  });
+
+  // Filter để cắt mảng giống Jinja slice cho Nunjucks templates
+  eleventyConfig.addFilter("slice", function(array, start, end) {
+    if (!Array.isArray(array)) return [];
+    const safeStart = Number.isInteger(start) ? start : parseInt(start, 10) || 0;
+    if (end === undefined || end === null || end === "") {
+      return array.slice(safeStart);
+    }
+    const safeEnd = Number.isInteger(end) ? end : parseInt(end, 10);
+    if (Number.isNaN(safeEnd)) {
+      return array.slice(safeStart);
+    }
+    return array.slice(safeStart, safeEnd);
   });
   
   // Helper function để lấy nested value từ object
@@ -715,6 +739,13 @@ module.exports = function (eleventyConfig) {
     if (!Array.isArray(array1)) array1 = [];
     if (!Array.isArray(array2)) array2 = [];
     return array1.concat(array2);
+  });
+  
+  // Filter để merge objects
+  eleventyConfig.addFilter("merge", function(obj1, obj2) {
+    if (!obj1) obj1 = {};
+    if (!obj2) obj2 = {};
+    return Object.assign({}, obj1, obj2);
   });
   
   // Filter để strip HTML tags
@@ -756,6 +787,37 @@ module.exports = function (eleventyConfig) {
       return dgPublish !== false;
     });
   });
+
+  // Collection cho published posts (đã xuất bản)
+  eleventyConfig.addCollection("published", function(collectionApi) {
+    return collectionApi.getFilteredByTag("note").filter(function(item) {
+      if (item.inputPath && item.inputPath.includes("Home.md")) {
+        return false;
+      }
+      const dgPublish = item.data["dg-publish"] !== undefined 
+        ? item.data["dg-publish"] 
+        : item.data.dgPublish;
+      return dgPublish !== false;
+    }).sort(function(a, b) {
+      // Sort by date descending (newest first)
+      return new Date(b.date) - new Date(a.date);
+    });
+  });
+
+  // Collection cho drafts (bản nháp)
+  eleventyConfig.addCollection("drafts", function(collectionApi) {
+    return collectionApi.getFilteredByTag("note").filter(function(item) {
+      if (item.inputPath && item.inputPath.includes("Home.md")) {
+        return false;
+      }
+      const dgPublish = item.data["dg-publish"] !== undefined 
+        ? item.data["dg-publish"] 
+        : item.data.dgPublish;
+      return dgPublish === false;
+    }).sort(function(a, b) {
+      return new Date(b.date) - new Date(a.date);
+    });
+  });
   
   // Collection tất cả tags từ notes
   eleventyConfig.addCollection("allTags", function(collectionApi) {
@@ -777,6 +839,59 @@ module.exports = function (eleventyConfig) {
     return Array.from(allTags).sort();
   });
   
+  // Collection cho Data Analyst Projects (có tag "project" hoặc "portfolio")
+  eleventyConfig.addCollection("projects", function(collectionApi) {
+    return collectionApi.getFilteredByTag("note").filter(function(item) {
+      if (item.inputPath && item.inputPath.includes("Home.md")) {
+        return false;
+      }
+      const tags = item.data?.tags || [];
+      const isProject = tags.includes("project") || tags.includes("portfolio") || tags.includes("data-analysis");
+      const dgPublish = item.data["dg-publish"] !== undefined 
+        ? item.data["dg-publish"] 
+        : item.data.dgPublish;
+      return isProject && dgPublish !== false;
+    }).sort(function(a, b) {
+      return new Date(b.date || b.fileCreatedTime) - new Date(a.date || a.fileCreatedTime);
+    });
+  });
+  
+  // Collection cho projects theo technology/tool
+  eleventyConfig.addCollection("projectsByTech", function(collectionApi) {
+    const projects = collectionApi.getFilteredByTag("note").filter(function(item) {
+      const tags = item.data?.tags || [];
+      return (tags.includes("project") || tags.includes("portfolio") || tags.includes("data-analysis")) &&
+             item.data["dg-publish"] !== false;
+    });
+    
+    const techMap = {
+      "sql": [],
+      "python": [],
+      "excel": [],
+      "tableau": [],
+      "power-bi": [],
+      "r": [],
+      "visualization": [],
+      "dashboard": [],
+      "statistics": [],
+      "machine-learning": []
+    };
+    
+    projects.forEach(project => {
+      const tags = (project.data?.tags || []).map(t => t.toLowerCase());
+      const tech = project.data?.technology || project.data?.tool || [];
+      const allTech = [...tags, ...(Array.isArray(tech) ? tech : [tech])].map(t => t.toLowerCase());
+      
+      Object.keys(techMap).forEach(key => {
+        if (allTech.some(t => t.includes(key) || key.includes(t))) {
+          techMap[key].push(project);
+        }
+      });
+    });
+    
+    return techMap;
+  });
+  
   // Filter để lấy length của array
   eleventyConfig.addFilter("length", function(array) {
     if (Array.isArray(array)) {
@@ -784,6 +899,168 @@ module.exports = function (eleventyConfig) {
     }
     return 0;
   });
+
+  // Filter để format số với dấu phẩy
+  eleventyConfig.addFilter("number_format", function(num) {
+    if (typeof num !== 'number') {
+      num = parseInt(num) || 0;
+    }
+    return num.toLocaleString('en-US');
+  });
+
+  // Filter để format số với k (1.2k, 5.5k)
+  eleventyConfig.addFilter("format_views", function(num) {
+    if (typeof num !== 'number') {
+      num = parseInt(num) || 0;
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    }
+    return num.toString();
+  });
+  
+  // Filter để pluralize (thêm 's' nếu số > 1)
+  eleventyConfig.addFilter("pluralize", function(num, singular = "", plural = "s") {
+    if (typeof num !== 'number') {
+      num = parseInt(num) || 0;
+    }
+    return num === 1 ? singular : plural;
+  });
+
+  // Filter để tính thời gian đã trôi qua (2 ngày trước, 1 tuần trước)
+  eleventyConfig.addFilter("time_ago", function(date) {
+    if (!date) return '';
+    const now = new Date();
+    const then = new Date(date);
+    const diffMs = now - then;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
+    
+    if (diffDays === 0) return 'Hôm nay';
+    if (diffDays === 1) return '1 ngày trước';
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffWeeks === 1) return '1 tuần trước';
+    if (diffWeeks < 4) return `${diffWeeks} tuần trước`;
+    if (diffMonths === 1) return '1 tháng trước';
+    if (diffMonths < 12) return `${diffMonths} tháng trước`;
+    return `${Math.floor(diffMonths / 12)} năm trước`;
+  });
+
+  // Filter để lấy category từ folder path hoặc tag đầu tiên
+  eleventyConfig.addFilter("get_category", function(note) {
+    if (note.data?.category) return note.data.category;
+    if (note.data?.tags && note.data.tags.length > 0) {
+      const firstTag = note.data.tags.find(t => t !== 'note' && t !== 'gardenEntry' && t !== 'blog');
+      if (firstTag) return firstTag;
+    }
+    // Lấy từ folder path
+    if (note.inputPath) {
+      const pathParts = note.inputPath.split(/[/\\]/);
+      // Check cả 'notes' và 'blog' folders
+      const notesIndex = pathParts.findIndex(p => p === 'notes' || p === 'blog');
+      if (notesIndex >= 0 && pathParts[notesIndex + 1]) {
+        const folder = pathParts[notesIndex + 1];
+        // Loại bỏ số và dấu chấm ở đầu
+        return folder.replace(/^\d+\.\s*/, '').replace(/^\d+\s*/, '');
+      }
+    }
+    return 'Uncategorized';
+  });
+  
+  // Filter để check nếu date older than N days
+  eleventyConfig.addFilter("olderThan", function(date, days) {
+    if (!date) return true;
+    const dateObj = new Date(date);
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - days);
+    return dateObj < daysAgo;
+  });
+
+  // Filter để tính views từ dữ liệu thực (frontmatter)
+  eleventyConfig.addFilter("get_views", function(note) {
+    if (!note || !note.data) return 0;
+    const views = Number(note.data.views);
+    return Number.isFinite(views) ? Math.max(0, Math.floor(views)) : 0;
+  });
+
+  // Filter để lấy comments từ dữ liệu thực (frontmatter)
+  eleventyConfig.addFilter("get_comments", function(note) {
+    if (!note || !note.data) return 0;
+    const comments = Number(note.data.comments);
+    return Number.isFinite(comments) ? Math.max(0, Math.floor(comments)) : 0;
+  });
+
+  // Filter để lấy likes từ dữ liệu thực (frontmatter)
+  eleventyConfig.addFilter("get_likes", function(note) {
+    if (!note || !note.data) return 0;
+    const likes = Number(note.data.likes);
+    return Number.isFinite(likes) ? Math.max(0, Math.floor(likes)) : 0;
+  });
+
+  // Filter để tính reading time chính xác (dựa trên số từ)
+  eleventyConfig.addFilter("get_reading_time", function(content) {
+    try {
+      return calculateReadingTime(content);
+    } catch {
+      return 0;
+    }
+  });
+
+  // Helper function để tính reading time
+  function calculateReadingTime(content) {
+    if (!content) return 0;
+    const text = (typeof content === "string" ? content : String(content || ""))
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!text) return 0;
+    const words = text.split(/\s+/).filter((w) => w.length > 0);
+    return Math.max(1, Math.ceil(words.length / 200));
+  }
+
+  // Filter để tính tổng views từ tất cả notes (không ước lượng)
+  eleventyConfig.addFilter("get_total_views", function(notes) {
+    if (!notes || !Array.isArray(notes)) return 0;
+    return notes.reduce((sum, note) => sum + (Number(note?.data?.views) || 0), 0);
+  });
+
+  // Filter subscribers: chỉ dùng dữ liệu thực nếu có
+  eleventyConfig.addFilter("get_total_subscribers", function(valueOrNotes) {
+    if (typeof valueOrNotes === "number") {
+      return Math.max(0, Math.floor(valueOrNotes));
+    }
+    if (!Array.isArray(valueOrNotes)) return 0;
+    return valueOrNotes.reduce((sum, note) => sum + (Number(note?.data?.subscribers) || 0), 0);
+  });
+
+  // Filter avg engagement từ reading_time frontmatter nếu có
+  eleventyConfig.addFilter("get_avg_engagement", function(notes) {
+    if (!notes || !Array.isArray(notes) || notes.length === 0) return "0m 0s";
+    const values = notes
+      .map((note) => Number(note?.data?.reading_time))
+      .filter((x) => Number.isFinite(x) && x > 0);
+    if (values.length === 0) return "0m 0s";
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const minutes = Math.floor(avg);
+    const seconds = Math.floor((avg - minutes) * 60);
+    return `${minutes}m ${seconds}s`;
+  });
+
+  // Add blog content directory
+  eleventyConfig.addCollection("blog", function(collectionApi) {
+    return collectionApi.getFilteredByGlob("src/content/blog/**/*.md").filter(function(item) {
+      const dgPublish = item.data["dg-publish"] !== undefined 
+        ? item.data["dg-publish"] 
+        : item.data.dgPublish;
+      return dgPublish !== false;
+    }).sort(function(a, b) {
+      return new Date(b.date || b.fileCreatedTime) - new Date(a.date || a.fileCreatedTime);
+    });
+  });
+
+  // Passthrough copy for blog content images
+  eleventyConfig.addPassthroughCopy("src/content/blog/**/*.{png,jpg,jpeg,gif,webp,svg}");
 
   return {
     dir: {
@@ -797,3 +1074,5 @@ module.exports = function (eleventyConfig) {
     passthroughFileCopy: true,
   };
 };
+
+

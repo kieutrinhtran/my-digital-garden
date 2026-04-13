@@ -4,39 +4,407 @@ layout: layouts/index.njk
 title: Digital Garden
 dgHomeLink: true
 dgShowFileTree: false
-dgShowLocalGraph: true
-dgShowToc: true
-dgShowBacklinks: true
+dgShowLocalGraph: false
+dgShowToc: false
+dgShowBacklinks: false
 ---
 
-<div class="home-hero">
-  <div class="home-hero-content">
-    <h1 class="home-hero-title">
-      <i icon-name="sparkles"></i>
-      Chào mừng đến Digital Garden
-    </h1>
-    <p class="home-hero-description">
-      Nơi tôi lưu trữ, tổ chức và chia sẻ kiến thức của mình. 
-      Khám phá các bài viết, ý tưởng và suy nghĩ được kết nối với nhau.
-    </p>
-    <div class="home-hero-stats">
-      {% set totalNotes = collections.note | length %}
-      {% set totalTags = collections.allTags | length %}
-      <div class="home-stat-item">
-        <i icon-name="file-text"></i>
-        <span class="home-stat-value">{{ totalNotes }}</span>
-        <span class="home-stat-label">Bài viết</span>
+<div class="homepage-modern">
+  {# Navigation #}
+  <nav class="homepage-nav">
+    <div class="nav-container">
+      <div class="nav-left">
+        <a href="/" class="nav-logo">
+          <div class="logo-icon">
+            <i icon-name="book-open"></i>
+          </div>
+          <span class="logo-text">{{ meta.siteName }}</span>
+        </a>
+        <div class="nav-categories">
+          <a href="/" class="category-tab active">Trang chủ</a>
+          <a href="/posts/" class="category-tab">Dự án</a>
+          <a href="/posts/" class="category-tab">Bài viết</a>
+          <a href="/graph.html" class="category-tab">Graph</a>
+        </div>
       </div>
-      <div class="home-stat-item">
-        <i icon-name="tag"></i>
-        <span class="home-stat-value">{{ totalTags }}</span>
-        <span class="home-stat-label">Tags</span>
-      </div>
-      <div class="home-stat-item">
-        <i icon-name="git-branch"></i>
-        <span class="home-stat-value">{{ graph.nodes | length if graph else 0 }}</span>
-        <span class="home-stat-label">Kết nối</span>
+      <div class="nav-right">
+        <button class="nav-theme-toggle" data-theme-toggle aria-label="Chuyển theme" title="Chuyển theme">
+          <i icon-name="sun"></i>
+        </button>
+        <div class="nav-search" onclick="if(typeof toggleSearch === 'function') toggleSearch()">
+          <i icon-name="search"></i>
+          <input type="text" placeholder="Search articles..." readonly />
+        </div>
+        <div class="nav-profile">
+          <div class="profile-info">
+            <span class="profile-name">{{ meta.siteName }}</span>
+            <span class="profile-role">Data Analyst</span>
+          </div>
+          <div class="profile-avatar">
+            <i icon-name="user"></i>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+  </nav>
+
+  {# Main Content #}
+  <main class="homepage-main">
+    {# Hero Section: Featured Article #}
+    {% set featuredPost = collections.published | first %}
+    {% if featuredPost %}
+    <section class="hero-section">
+      <a href="{{ featuredPost.url }}" class="hero-card">
+        <div class="hero-background">
+          {% if featuredPost.data.image or featuredPost.data.thumbnail %}
+            <img src="{{ featuredPost.data.image or featuredPost.data.thumbnail }}" alt="{{ featuredPost.data.title or featuredPost.fileSlug }}" />
+          {% endif %}
+          <div class="hero-overlay"></div>
+        </div>
+        <div class="hero-content">
+          <span class="hero-badge">
+            <span class="badge-dot"></span>
+            Featured
+          </span>
+          <h1 class="hero-title">{{ featuredPost.data.title or featuredPost.fileSlug }}</h1>
+          {% if featuredPost.templateContent %}
+            {% set excerpt = featuredPost.templateContent | striptags | truncate(150) %}
+            <p class="hero-description">{{ excerpt }}</p>
+          {% endif %}
+          <div class="hero-meta">
+            {% if featuredPost.date %}
+            <div class="hero-meta-item">
+              <i icon-name="calendar"></i>
+              <span>{{ featuredPost.date | date('%b %d, %Y') }}</span>
+            </div>
+            {% endif %}
+            {% if featuredPost.templateContent %}
+              {% set readingTime = featuredPost.templateContent | get_reading_time %}
+              {% if readingTime and readingTime > 0 %}
+              <div class="hero-meta-item">
+                <i icon-name="clock"></i>
+                <span>{{ readingTime }} min read</span>
+              </div>
+              {% endif %}
+            {% endif %}
+            <a href="{{ featuredPost.url }}" class="hero-button">
+              Read Article
+              <i icon-name="arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </a>
+    </section>
+    {% endif %}
+
+    {# Stats Overview - Data Analyst Portfolio #}
+    <section class="stats-section">
+      {% set totalProjects = collections.projects | length %}
+      {% set totalArticles = collections.published | length %}
+      {% set totalViews = collections.published | get_total_views(graph) %}
+      {% set projectsByTech = collections.projectsByTech %}
+      
+      <div class="stat-card stat-primary">
+        <div class="stat-icon">
+          <i icon-name="database"></i>
+        </div>
+        <div class="stat-info">
+          <p class="stat-label">Data Projects</p>
+          <h3 class="stat-value">{{ totalProjects }}</h3>
+        </div>
+      </div>
+
+      <div class="stat-card stat-purple">
+        <div class="stat-icon">
+          <i icon-name="file-text"></i>
+        </div>
+        <div class="stat-info">
+          <p class="stat-label">Articles & Analysis</p>
+          <h3 class="stat-value">{{ totalArticles }}</h3>
+        </div>
+      </div>
+
+      <div class="stat-card stat-emerald">
+        <div class="stat-icon">
+          <i icon-name="bar-chart-3"></i>
+        </div>
+        <div class="stat-info">
+          <p class="stat-label">Total Views</p>
+          <h3 class="stat-value">{{ totalViews | format_views }}</h3>
+        </div>
+      </div>
+
+      <div class="stat-card stat-orange">
+        <div class="stat-icon">
+          <i icon-name="code"></i>
+        </div>
+        <div class="stat-info">
+          <p class="stat-label">Technologies</p>
+          <h3 class="stat-value">{{ projectsByTech | length }}+</h3>
+        </div>
+      </div>
+    </section>
+
+    {# About Me Section #}
+    <section class="about-section">
+      <div class="about-container">
+        <div class="about-header">
+          <h2 class="about-title">
+            <i icon-name="user"></i>
+            About Me
+          </h2>
+        </div>
+        <div class="about-content">
+          <div class="about-text">
+            <p class="about-intro">
+              Xin chào! Tôi là <strong>Trinh (Kirstin) Tran</strong> 👋
+            </p>
+            <p>
+              Hiện tại tôi đang là sinh viên năm 3 ngành <strong>Business Information Systems (BIS)</strong> tại 
+              <strong>Đại học Kinh tế TP.HCM (UEH)</strong>. Tôi quan tâm sâu sắc đến 
+              <strong>Business Intelligence</strong>, <strong>Data Analysis</strong> và <strong>Business Analysis</strong>.
+            </p>
+            <p>
+              Tôi là một data analyst đầy nhiệt huyết, luôn khao khát học hỏi và đóng góp giá trị trong lĩnh vực phân tích dữ liệu đang phát triển mạnh mẽ này. 
+              Dù mới bắt đầu với data analysis, tôi luôn tràn đầy nhiệt huyết và khát khao kiến thức không ngừng. 
+              Đam mê của tôi là khám phá insights từ dữ liệu, và tôi mong muốn được áp dụng kỹ năng của mình để tạo ra giá trị trong 
+              lĩnh vực data analysis đang phát triển nhanh chóng.
+            </p>
+            <p>
+              Hiện tại tôi đang tập trung vào các dự án về <strong>Analytics</strong> và <strong>Business Intelligence</strong>. 
+              Tôi rất hào hứng được hợp tác trong các dự án analytics thú vị!
+            </p>
+          </div>
+          <div class="about-contact">
+            <h3 class="about-contact-title">Let's Connect</h3>
+            <div class="about-contact-links">
+              <a href="https://github.com/kieutrinhtran" class="contact-link" target="_blank" rel="noopener">
+                <i icon-name="github"></i>
+                <span>GitHub</span>
+              </a>
+              <a href="https://www.linkedin.com/in/kieutrinhtran/" class="contact-link" target="_blank" rel="noopener">
+                <i icon-name="linkedin"></i>
+                <span>LinkedIn</span>
+              </a>
+              <a href="mailto:kieutrinhtran.work@gmail.com" class="contact-link" target="_blank" rel="noopener">
+                <i icon-name="mail"></i>
+                <span>Email</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# Category: Featured Projects #}
+    {% set featuredProjects = collections.projects | slice(0, 3) %}
+    {% if featuredProjects | length > 0 %}
+    <section class="category-section">
+      <div class="category-header">
+        <div class="category-title-wrapper">
+          <span class="category-indicator"></span>
+          <h2 class="category-title">Featured Projects</h2>
+        </div>
+        <a href="/posts/" class="category-link">
+          View All Projects
+          <i icon-name="chevron-right"></i>
+        </a>
+      </div>
+      <div class="articles-grid">
+        {% for project in featuredProjects %}
+        <article class="article-card">
+          <a href="{{ project.url }}" class="article-card-link">
+            <div class="article-image">
+              {% if project.data.image or project.data.thumbnail %}
+                <img src="{{ project.data.image or project.data.thumbnail }}" alt="{{ project.data.title or project.fileSlug }}" />
+              {% else %}
+                <div class="article-image-placeholder">
+                  <i icon-name="database"></i>
+                </div>
+              {% endif %}
+              <div class="article-views-badge">
+                <i icon-name="eye"></i>
+                <span>{{ project | get_views(graph) | format_views }}</span>
+              </div>
+              {% if project.data.technology or project.data.tool %}
+                <div class="article-tech-badge">
+                  {% set tech = project.data.technology or project.data.tool %}
+                  {% if tech %}
+                    {% if tech is iterable and tech is not string %}
+                      {% for t in tech | slice(0, 1) %}
+                        <span class="tech-tag">{{ t }}</span>
+                      {% endfor %}
+                    {% else %}
+                      <span class="tech-tag">{{ tech }}</span>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+            <div class="article-body">
+              <div class="article-meta-top">
+                <span class="article-category-badge">{{ project | get_category }}</span>
+                <span class="article-separator">•</span>
+                {% if project.date %}
+                  <span class="article-date">{{ project.date | time_ago }}</span>
+                {% endif %}
+              </div>
+              <h3 class="article-card-title">{{ project.data.title or project.fileSlug }}</h3>
+              {% if project.templateContent %}
+                {% set excerpt = project.templateContent | striptags | truncate(100) %}
+                <p class="article-card-excerpt">{{ excerpt }}</p>
+              {% endif %}
+              <div class="article-actions">
+                <div class="article-action-buttons">
+                  <button class="action-btn" onclick="event.preventDefault();">
+                    <i icon-name="external-link"></i>
+                  </button>
+                  <button class="action-btn" onclick="event.preventDefault();">
+                    <i icon-name="share-2"></i>
+                  </button>
+                </div>
+                <a href="{{ project.url }}" class="article-edit-btn">
+                  <i icon-name="arrow-right"></i>
+                  View Project
+                </a>
+              </div>
+            </div>
+          </a>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {# Category: Latest Articles & Analysis #}
+    {% set latestPosts = collections.published | rejectattr("data.tags", "contains", "project") | slice(0, 3) %}
+    {% if latestPosts | length > 0 %}
+    <section class="category-section">
+      <div class="category-header">
+        <div class="category-title-wrapper">
+          <span class="category-indicator category-indicator-blue"></span>
+          <h2 class="category-title">Latest Articles & Analysis</h2>
+        </div>
+        <a href="/posts/" class="category-link category-link-blue">
+          View All
+          <i icon-name="chevron-right"></i>
+        </a>
+      </div>
+      <div class="articles-grid">
+        {% for post in latestPosts %}
+        <article class="article-card">
+          <a href="{{ post.url }}" class="article-card-link">
+            <div class="article-image">
+              {% if post.data.image or post.data.thumbnail %}
+                <img src="{{ post.data.image or post.data.thumbnail }}" alt="{{ post.data.title or post.fileSlug }}" />
+              {% else %}
+                <div class="article-image-placeholder">
+                  <i icon-name="file-text"></i>
+                </div>
+              {% endif %}
+              <div class="article-views-badge">
+                <i icon-name="eye"></i>
+                <span>{{ post | get_views(graph) | format_views }}</span>
+              </div>
+            </div>
+            <div class="article-body">
+              <div class="article-meta-top">
+                <span class="article-category-badge">{{ post | get_category }}</span>
+                <span class="article-separator">•</span>
+                {% if post.date %}
+                  <span class="article-date">{{ post.date | time_ago }}</span>
+                {% endif %}
+              </div>
+              <h3 class="article-card-title">{{ post.data.title or post.fileSlug }}</h3>
+              {% if post.templateContent %}
+                {% set excerpt = post.templateContent | striptags | truncate(100) %}
+                <p class="article-card-excerpt">{{ excerpt }}</p>
+              {% endif %}
+              <div class="article-actions">
+                <div class="article-action-buttons">
+                  <button class="action-btn" data-action="like" data-url="{{ post.url }}">
+                    <i icon-name="heart"></i>
+                  </button>
+                  <button class="action-btn" data-action="share" data-url="{{ post.url }}" data-title="{{ post.data.title or post.fileSlug }}">
+                    <i icon-name="share-2"></i>
+                  </button>
+                </div>
+                <a href="{{ post.url }}" class="article-edit-btn">
+                  <i icon-name="arrow-right"></i>
+                  Read More
+                </a>
+              </div>
+            </div>
+          </a>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {# Mini Charts Section - Data Analyst Stats #}
+    {% include "components/miniCharts.njk" %}
+
+    {# Category: Skills & Technologies #}
+    {% set projectsByTech = collections.projectsByTech %}
+    {% if projectsByTech %}
+    <section class="category-section">
+      <div class="category-header">
+        <div class="category-title-wrapper">
+          <span class="category-indicator category-indicator-purple"></span>
+          <h2 class="category-title">Skills & Technologies</h2>
+        </div>
+      </div>
+      <div class="skills-grid">
+        {% for tech, projects in projectsByTech %}
+          {% if projects | length > 0 %}
+          <div class="skill-card">
+            <div class="skill-icon">
+              {% if tech == "sql" %}
+                <i icon-name="database"></i>
+              {% elif tech == "python" %}
+                <i icon-name="code"></i>
+              {% elif tech == "excel" %}
+                <i icon-name="table"></i>
+              {% elif tech == "tableau" or tech == "power-bi" or tech == "visualization" or tech == "dashboard" %}
+                <i icon-name="bar-chart-3"></i>
+              {% elif tech == "r" %}
+                <i icon-name="code-2"></i>
+              {% elif tech == "statistics" %}
+                <i icon-name="trending-up"></i>
+              {% elif tech == "machine-learning" %}
+                <i icon-name="brain"></i>
+              {% else %}
+                <i icon-name="tool"></i>
+              {% endif %}
+            </div>
+            <div class="skill-info">
+              <h4 class="skill-name">{{ tech | replace("-", " ") | title }}</h4>
+              <p class="skill-count">{{ projects | length }} project{{ projects | length | pluralize("", "s") }}</p>
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </main>
+
+  {# Footer #}
+  <footer class="homepage-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <span class="footer-logo">{{ meta.siteName }}</span>
+        <p class="footer-copyright">© 2024. Designed with glassmorphism.</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://www.linkedin.com/in/kieutrinhtran/" class="footer-link" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://github.com/kieutrinhtran" class="footer-link" target="_blank" rel="noopener">GitHub</a>
+        <a href="mailto:kieutrinhtran.work@gmail.com" class="footer-link">Email</a>
+      </div>
+      <div class="footer-newsletter">
+        <p class="newsletter-coming-soon">Newsletter sẽ sớm ra mắt.</p>
+      </div>
+    </div>
+  </footer>
 </div>

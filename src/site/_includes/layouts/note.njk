@@ -13,100 +13,72 @@ permalink: "notes/{{ page.fileSlug | slugify }}/"
       {% include imp %}
     {% endfor %}
   </head>
-  <body class="theme-{{meta.baseTheme}} markdown-preview-view markdown-rendered markdown-preview-section {{meta.bodyClasses}}">
+  <body class="theme-{{meta.baseTheme}} markdown-preview-view markdown-rendered markdown-preview-section {{meta.bodyClasses}} article-page">
+    <div class="reading-progress-track"><div class="reading-progress-bar"></div></div>
     {%include "components/notegrowthhistory.njk"%}
     
-    {% if settings.dgShowFileTree !== true %}
-      {%include "components/navbar.njk"%}
-    {% else %}
-      {%include "components/filetree.njk"%}
-    {% endif %}
+    {# Article Navbar #}
+    {% include "components/articleNavbar.njk" %}
 
     {% if settings.dgEnableSearch === true %}
       {%include "components/searchContainer.njk"%}
     {% endif %}
 
-    {# TOC Left Sidebar #}
-    {% include "components/tocLeft.njk" %}
+    <div class="article-page-container">
+      {# TOC Left Sidebar #}
+      {% include "components/tocLeft.njk" %}
 
-    <main class="content cm-s-obsidian {{contentClasses}}">
-      <header class="content-header">
-        {# Breadcrumb Navigation #}
-        {% include "components/breadcrumb.njk" %}
-        
-        {% if settings.dgShowInlineTitle === true %}
-          <h1 data-note-icon="{% if noteIcon %}{{noteIcon}}{% else %}{{meta.noteIconsSettings.default}}{% endif %}">
-            {% if title %}{{ title }}{% else %}{{ page.fileSlug }}{% endif %}
-          </h1>
-        {% endif %}
+      <main class="article-main-content">
+        {# Breadcrumb #}
+        <nav class="article-breadcrumb">
+          <a href="/">Trang chủ</a>
+          <i icon-name="chevron-right"></i>
+          <span>{{ page | get_category }}</span>
+          <i icon-name="chevron-right"></i>
+          <span>{{ title or page.fileSlug }}</span>
+        </nav>
 
-        <div class="header-meta">
-          {% if settings.dgShowTags === true and tags %}
-            <div class="header-tags">
-              {% for tag in tags %}
-                {% if tag != 'gardenEntry' and tag !='note' %}
-                  <a class="tag" onclick="toggleTagSearch(this)">
-                    #{{tag}}
-                  </a>
-                {% endif %}
-              {% endfor %}
-            </div>
+        {# Article Header #}
+        <header class="article-header">
+          <h1 class="article-title">{{ title or page.fileSlug }}</h1>
+          {% if content %}
+            {% set firstParagraph = content | striptags | truncate(200) %}
+            {% if firstParagraph %}
+              <p class="article-lead">{{ firstParagraph }}</p>
+            {% endif %}
           {% endif %}
-          
-          {%- if meta.timestampSettings.showCreated or meta.timestampSettings.showUpdated -%}
-            <div class="timestamps">
-              {%- if meta.timestampSettings.showCreated and created -%}
-                <div class="timestamp-item">
-                  <i icon-name="calendar-plus"></i>
-                  <span class="human-date" data-date="{{created}}"></span>
-                </div>
-              {%- endif -%}
-              {%- if meta.timestampSettings.showUpdated and updated -%}
-                <div class="timestamp-item">
-                  <i icon-name="calendar-clock"></i>
-                  <span class="human-date" data-date="{{updated}}"></span>
-                </div>
-              {%- endif -%}
-            </div>
-          {%- endif -%}
-        </div>
-        
-        {% for imp in dynamics.common.header %}
-          {% include imp %}
-        {% endfor %}
-        {% for imp in dynamics.notes.header %}
-          {% include imp %}
-        {% endfor %}
-      </header>
-      
-      {% for imp in dynamics.common.beforeContent %}
-        {% include imp %}
-      {% endfor %}
-      {% for imp in dynamics.notes.beforeContent %}
-        {% include imp %}
-      {% endfor %}
-      
-      <article class="content-body">
-        {{ content | hideDataview | taggify | link | safe}}
-      </article>
-      
-      {# Navigation: Next/Previous buttons #}
-      {% include "components/navigation.njk" %}
-      
-      {# Related Posts #}
-      {% if relatedPosts and relatedPosts.length > 0 %}
-      {% include "components/relatedPosts.njk" %}
-      {% endif %}
-      
-      {% for imp in dynamics.common.afterContent %}
-        {% include imp %}
-      {% endfor %}
-      {% for imp in dynamics.notes.afterContent %}
-        {% include imp %}
-      {% endfor %}
-    </main>
+        </header>
 
-    {%include "components/sidebar.njk"%}
+        {# Author Info #}
+        {% include "components/articleAuthor.njk" %}
+
+        {# Featured Image #}
+        {% if image or thumbnail %}
+        <div class="article-featured-image">
+          <img src="{{ image or thumbnail }}" alt="{{ title or page.fileSlug }}" loading="lazy">
+        </div>
+        {% endif %}
+      
+        {# Article Content #}
+        <article class="article-content">
+          {{ content | hideDataview | taggify | link | safe}}
+        </article>
+
+        {# Tags and Actions #}
+        {% include "components/articleTags.njk" %}
+      
+        {# Related Posts #}
+        {% if relatedPosts and relatedPosts.length > 0 %}
+          {% include "components/relatedPosts.njk" %}
+        {% endif %}
+      
+        {# Comments #}
+        {% include "components/articleComments.njk" %}
+      </main>
+
+      {# Right Sidebar - Link Graph #}
+      {%include "components/sidebar.njk"%}
+    </div>
 
     {% if settings.dgLinkPreview === true %}
       {%include "components/linkPreview.njk"%}
@@ -132,5 +104,7 @@ permalink: "notes/{{ page.fileSlug | slugify }}/"
     {%include "components/vercelAnalytics.njk"%}
     {%include "components/speedInsights.njk"%}
     {%include "components/backToTop.njk"%}
+    {%include "components/codeBlockCopy.njk"%}
+    {%include "components/uxEnhancements.njk"%}
   </body>
 </html>

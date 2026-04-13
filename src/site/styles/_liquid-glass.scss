@@ -1,0 +1,56 @@
+:root[data-theme="light"] {
+  --color-bg-primary: #e9eef7;
+  --color-bg-secondary: #f4f7fc;
+  --color-text-primary: rgba(17, 24, 39, 0.95);
+  --color-text-secondary: rgba(31, 41, 55, 0.82);
+  --color-border-subtle: rgba(15, 23, 42, 0.12);
+}
+
+.reading-progress-track {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  z-index: 9999;
+  background: transparent;
+}
+
+.reading-progress-bar {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.95), rgba(168, 85, 247, 0.95));
+  transition: width 120ms linear;
+}
+
+.dg-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 7, 12, 0.82);
+  backdrop-filter: blur(14px);
+}
+
+.dg-lightbox img {
+  max-width: min(96vw, 1200px);
+  max-height: 92vh;
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.liquid-panel,
+.article-card,
+.post-card,
+.mini-chart-card,
+.stats-bar,
+.about-container,
+.profile-header {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 12px 32px rgba(4, 7, 17, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+}

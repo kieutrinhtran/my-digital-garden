@@ -45,27 +45,61 @@ module.exports = {
     }
     return getRelatedPosts(data, 5);
   },
-  // SEO Meta
+  // SEO Meta - Optimized for Data Analyst Portfolio
   seoMeta: (data) => {
     const siteBaseUrl = data.meta?.siteBaseUrl || "";
     const pageUrl = data.permalink || data.url || "";
     const fullUrl = siteBaseUrl + pageUrl;
     const title = data.title || data.page?.fileSlug || "";
-    const description = data.description || 
-      (data.content ? data.content.substring(0, 160).replace(/[#*\[\]()]/g, "").trim() : "") ||
-      `${title} - ${data.meta?.siteName || "Digital Garden"}`;
+    
+    // Enhanced description for portfolio
+    let description = data.description;
+    if (!description && data.content) {
+      description = data.content.substring(0, 160).replace(/[#*\[\]()]/g, "").trim();
+    }
+    if (!description) {
+      if (data.tags?.includes("project") || data.tags?.includes("portfolio")) {
+        description = `Data Analysis Project: ${title} - Portfolio của ${data.meta?.siteName || "Data Analyst"}`;
+      } else {
+        description = `${title} - ${data.meta?.siteName || "Data Analyst Portfolio"}`;
+      }
+    }
+    
+    // Determine page type
+    let pageType = "article";
+    if (data.tags?.includes("gardenEntry") || pageUrl === "/") {
+      pageType = "website";
+    } else if (data.tags?.includes("project") || data.tags?.includes("portfolio")) {
+      pageType = "article"; // Projects are articles
+    }
+    
+    // Enhanced keywords for Data Analyst portfolio
+    const keywords = [];
+    if (data.tags) {
+      keywords.push(...data.tags.filter(t => t !== "note" && t !== "gardenEntry"));
+    }
+    if (data.data?.technology) {
+      const tech = Array.isArray(data.data.technology) ? data.data.technology : [data.data.technology];
+      keywords.push(...tech);
+    }
+    if (data.data?.tool) {
+      const tool = Array.isArray(data.data.tool) ? data.data.tool : [data.data.tool];
+      keywords.push(...tool);
+    }
+    keywords.push("Data Analyst", "Data Analysis", "Portfolio");
     
     return {
       title: title,
       description: description,
       url: fullUrl,
       canonical: fullUrl,
-      image: data.image || (siteBaseUrl + "/img/og-default.jpg"),
-      type: data.tags?.includes("gardenEntry") ? "website" : "article",
+      image: data.image || data.thumbnail || (siteBaseUrl + "/img/og-default.jpg"),
+      type: pageType,
       publishedTime: data.date ? new Date(data.date).toISOString() : null,
       modifiedTime: data.updated ? new Date(data.updated).toISOString() : null,
-      author: data.author || data.meta?.siteName || "",
-      tags: data.tags || []
+      author: data.author || data.meta?.siteName || "Data Analyst",
+      tags: data.tags || [],
+      keywords: keywords.join(", ")
     };
   },
   // Post Heatmap - chỉ tính cho index page để tối ưu performance
